@@ -51,10 +51,6 @@
 <script setup lang="ts">
 import type { Media } from '~~/types/media';
 
-definePageMeta({
-  layout: 'content'
-});
-
 
 const showForm = ref(false);
 const { data: mediaList, pending, error, refresh } = await useFetch<Media[]>('/api/media');
