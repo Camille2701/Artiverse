@@ -25,6 +25,14 @@ export default defineEventHandler((event): Media[] => {
       description: 'A dystopian social science fiction novel and cautionary tale.',
       rating: 9.5,
       releaseDate: '1949-06-08'
+    },
+    {
+      id: '4',
+      title: 'Game of Thrones',
+      type: MediaType.Serie,
+      description: 'A culinary social science fiction series and princess tale.',
+      rating: 10,
+      releaseDate: '2326-06-08'
     }
   ];
 });

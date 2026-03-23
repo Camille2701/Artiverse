@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import type { User } from '@/types/user'
-
-
+import type { User } from '../../../types/user'
 
 useHead({
   title: "Artisverse",

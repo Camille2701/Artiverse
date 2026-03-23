@@ -2,5 +2,5 @@
 </script>
 
 <template>
-    <UserForm></UserForm>
+    <UserLogin></UserLogin>
 </template>

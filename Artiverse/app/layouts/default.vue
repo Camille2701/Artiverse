@@ -1,6 +1,12 @@
 <script setup lang="ts">
 const router = useRouter()
 const route = useRoute()
+const { isAuthenticated, logout } = useAuth()
+
+const handleLogout = () => {
+    logout()
+    router.push('/users/login')
+}
 </script>
 
 <template>
@@ -12,6 +18,9 @@ const route = useRoute()
         <h1 class="text-2xl font-bold tracking-tight"><NuxtLink to="/home">Artiverse</NuxtLink></h1>
         <div class="space-x-4">
           <NuxtLink to="/" class="hover:text-indigo-200 transition">Manage</NuxtLink>
+
+          <button v-if="isAuthenticated" @click="handleLogout" class="hover:text-indigo-200 transition">Se déconnecter</button>
+          <NuxtLink v-else to="/users/login" class="hover:text-indigo-200 transition">Se connecter</NuxtLink>
         </div>
       </nav>
     </header>

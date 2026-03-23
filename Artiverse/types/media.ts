@@ -1,7 +1,8 @@
 export enum MediaType {
   Movie = 'Movie',
   Game = 'Game',
-  Book = 'Book'
+  Book = 'Book',
+  Serie = 'Serie'
 }
 
 export interface Media {

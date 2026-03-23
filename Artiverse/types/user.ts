@@ -5,7 +5,5 @@ export type User = {
     role: 'admin' | 'user',
     isActive: boolean,
     avatar: string,
-    age: number,
-    isAuthenticated: boolean,
-    token: string
+    age: number
 }
