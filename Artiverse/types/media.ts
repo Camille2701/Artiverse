@@ -12,4 +12,5 @@ export interface Media {
   description: string;
   rating: number;
   releaseDate: string;
+  image: string;
 }

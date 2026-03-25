@@ -2,7 +2,7 @@
 import type { User } from '../../../types/user'
 
 useHead({
-  title: "Artisverse",
+  title: "Artiverse",
   meta: [
     { name: "Page de consultation d'un utilisateur", content: "Consultation d'un utilisateur"}
   ]
@@ -35,175 +35,64 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="user-detail-page">
-    <div v-if="error" class="error">
-      <h1>Utilisateur introuvable</h1>
-      <NuxtLink to="/" class="btn">Retour à l'accueil</NuxtLink>
+  <div class="mx-auto my-4 w-full max-w-3xl px-4 py-4 sm:my-6 sm:px-6 sm:py-6 lg:my-8 lg:px-8 lg:py-8">
+    <h1 class="text-2xl font-semibold text-slate-900 sm:text-3xl">Mon profil</h1>
+
+    <div v-if="error" class="mt-4 p-4 text-center sm:mt-6 sm:p-6 lg:mt-8 lg:p-8">
+      <h2 class="mb-4 text-xl font-semibold text-red-500 sm:text-2xl">Utilisateur introuvable</h2>
+      <NuxtLink
+        to="/"
+        class="inline-block rounded-md bg-slate-600 px-5 py-2.5 text-sm font-semibold text-white transition-all duration-200 ease-out hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-1 active:bg-slate-800 sm:px-6 sm:py-3 sm:text-base"
+      >
+        Retour à l'accueil
+      </NuxtLink>
     </div>
 
-    <div v-else-if="user" class="user-detail">
-      <div class="header">
-        <img :src="user.avatar" :alt="user.name" class="avatar" />
+    <div v-else-if="user" class="mt-4 rounded-xl bg-white p-4 shadow-md sm:mt-6 sm:p-6 lg:mt-8 lg:p-8">
+      <div class="mb-6 flex flex-col items-center gap-4 border-b-2 border-slate-200 pb-6 text-center sm:mb-8 sm:flex-row sm:items-center sm:gap-6 sm:pb-8 sm:text-left lg:gap-8">
+        <img :src="user.avatar" :alt="user.name" class="h-24 w-24 rounded-full object-cover sm:h-[110px] sm:w-[110px] lg:h-[120px] lg:w-[120px]" />
         <div>
-          <h1>{{ user.name }}</h1>
-          <span class="status" :class="{ active: user.isActive }">
+          <h2 class="mb-2 text-xl font-semibold text-slate-800 sm:text-2xl">{{ user.name }}</h2>
+          <span
+            class="rounded-md px-4 py-2 text-sm font-semibold"
+            :class="user.isActive ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'"
+          >
             {{ user.isActive ? '✓ Actif' : '○ Inactif' }}
           </span>
         </div>
       </div>
 
-      <div class="info-grid">
-        <div class="info-item">
-          <strong>Email</strong>
-          <span>{{ user.email }}</span>
+      <div class="mb-6 grid grid-cols-1 gap-3 sm:mb-8 sm:gap-4 lg:grid-cols-2">
+        <div class="rounded-lg border border-slate-200 bg-slate-50 p-4">
+          <strong class="mb-2 block text-sm text-slate-500">Email</strong>
+          <span class="font-medium text-slate-800">{{ user.email }}</span>
         </div>
-        <div class="info-item">
-          <strong>Âge</strong>
-          <span>{{ user.age }} ans</span>
+        <div class="rounded-lg border border-slate-200 bg-slate-50 p-4">
+          <strong class="mb-2 block text-sm text-slate-500">Âge</strong>
+          <span class="font-medium text-slate-800">{{ user.age }} ans</span>
         </div>
-        <div class="info-item">
-          <strong>ID</strong>
-          <span>#{{ user.id }}</span>
+        <div class="rounded-lg border border-slate-200 bg-slate-50 p-4">
+          <strong class="mb-2 block text-sm text-slate-500">ID</strong>
+          <span class="font-medium text-slate-800">#{{ user.id }}</span>
         </div>
-        <div class="info-item">
-          <strong>Rôle</strong>
-          <span>{{ user.role }}</span>
+        <div class="rounded-lg border border-slate-200 bg-slate-50 p-4">
+          <strong class="mb-2 block text-sm text-slate-500">Rôle</strong>
+          <span class="font-medium text-slate-800">{{ user.role }}</span>
         </div>
       </div>
 
-      <div class="actions">
-        <NuxtLink to="/users/new" class="btn btn-secondary">
-          Créer un utilisateur
-        </NuxtLink>
-        <NuxtLink to="/" class="btn btn-primary">
+      <div class="flex justify-center gap-4">
+        <NuxtLink
+          to="/"
+          class="inline-block w-full rounded-md bg-accent px-5 py-2.5 text-center text-sm font-semibold text-white transition-all duration-200 ease-out hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-1 active:bg-accent-hover sm:w-auto sm:px-6 sm:py-3 sm:text-base"
+        >
           Retour à l'accueil
         </NuxtLink>
       </div>
     </div>
 
-    <div v-else class="loading">
+    <div v-else class="mt-4 p-4 text-center sm:mt-6 sm:p-6 lg:mt-8 lg:p-8">
       Chargement...
     </div>
   </div>
 </template>
-
-<style scoped>
-.user-detail-page {
-  max-width: 800px;
-  margin: 2rem auto;
-  padding: 2rem;
-}
-
-.user-detail {
-  background: white;
-  border-radius: 12px;
-  padding: 2rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.header {
-  display: flex;
-  align-items: center;
-  gap: 2rem;
-  margin-bottom: 2rem;
-  padding-bottom: 2rem;
-  border-bottom: 2px solid #e5e7eb;
-}
-
-.avatar {
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.header h1 {
-  margin: 0 0 0.5rem 0;
-  color: #1f2937;
-}
-
-.status {
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  font-weight: 600;
-  font-size: 0.875rem;
-}
-
-.status.active {
-  background: #d1fae5;
-  color: #065f46;
-}
-
-.status:not(.active) {
-  background: #fee2e2;
-  color: #991b1b;
-}
-
-.info-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-
-.info-item {
-  padding: 1rem;
-  background: #f9fafb;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
-}
-
-.info-item strong {
-  display: block;
-  color: #6b7280;
-  font-size: 0.875rem;
-  margin-bottom: 0.5rem;
-}
-
-.info-item span {
-  color: #1f2937;
-  font-weight: 500;
-}
-
-.actions {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-}
-
-.btn {
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  text-decoration: none;
-  font-weight: 600;
-  transition: all 0.3s ease;
-}
-
-.btn-primary {
-  background: #3b82f6;
-  color: white;
-}
-
-.btn-primary:hover {
-  background: #2563eb;
-}
-
-.btn-secondary {
-  background: #6b7280;
-  color: white;
-}
-
-.btn-secondary:hover {
-  background: #4b5563;
-}
-
-.error, .loading {
-  text-align: center;
-  padding: 2rem;
-}
-
-.error h1 {
-  color: #ef4444;
-  margin-bottom: 1rem;
-}
-</style>

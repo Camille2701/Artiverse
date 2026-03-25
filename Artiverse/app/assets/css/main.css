@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+    .category-filter-btn {
+        @apply rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition-all duration-200 ease-out hover:border-slate-400 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-1 active:scale-[0.98];
+    }
+
+    .category-filter-btn--active {
+        @apply text-white;
+        background-color: theme('colors.accent');
+        border-color: theme('colors.accent');
+    }
+
+    .category-filter-btn--active:hover {
+        background-color: theme('colors.accent-hover');
+        border-color: theme('colors.accent-hover');
+    }
+
+    .btn-accent {
+        @apply w-full rounded-md px-4 py-2 text-white transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-1;
+        background-color: theme('colors.accent');
+    }
+
+    .btn-accent:hover {
+        background-color: theme('colors.accent-hover');
+    }
+
+    .text-link-accent {
+        @apply text-accent transition-colors hover:text-accent-hover hover:underline;
+    }
+}

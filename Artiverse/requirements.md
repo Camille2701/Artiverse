@@ -1,0 +1,4 @@
+- [ ] Utilisation de 3 @apply OK
+- [ ] Responsive OK 
+- [ ] Variantes En cours
+- [ ] Cohérence En cours

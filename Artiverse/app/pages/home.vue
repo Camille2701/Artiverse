@@ -1,71 +1,74 @@
 <template>
     <div>
-        <h1>Bienvenue sur Artiverse</h1>
-
-        <p>Explorez et gérez votre collection de médias préférés !</p>
-
-        <div>
-            <h2 class="text-2xl font-bold text-gray-900 mb-4">Films</h2>
-            <div v-if="movies.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <MediaShow v-for="movie in movies" :key="movie.id" :media="movie" />
+        <div class="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+            <div>
+                <h1 class="text-3xl font-extrabold text-gray-900">Bienvenue sur Artiverse</h1>
+                <p class="mt-1 text-sm text-gray-600">Explorez et gérez votre collection de médias préférés.</p>
             </div>
-            <p v-else class="text-gray-500 italic">Aucun film disponible pour le moment.</p>
         </div>
 
-        <div>
-            <h2 class="text-2xl font-bold text-gray-900">Séries</h2>
-            <div v-if="series.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <MediaShow v-for="serie in series" :key="serie.id" :media="serie" />
-            </div>
-            <p v-else class="text-gray-500 italic">Aucune série disponible pour le moment.</p>
+        <div class="mb-8 flex flex-wrap gap-2">
+            <button
+                v-for="category in categories"
+                :key="category.value"
+                type="button"
+                class="category-filter-btn"
+                :class="{ 'category-filter-btn--active': selectedCategory === category.value }"
+                @click="selectedCategory = category.value"
+            >
+                {{ category.label }}
+            </button>
         </div>
 
-        <div>
-            <h2 class="text-2xl font-bold text-gray-900">Jeux Vidéo</h2>
-            <div v-if="games.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <MediaShow v-for="game in games" :key="game.id" :media="game" />
+        <div class="space-y-6">
+            <div v-if="pending" class="flex items-center justify-center py-20">
+                <div class="h-12 w-12 animate-spin rounded-full border-b-2 border-accent"></div>
             </div>
-            <p v-else class="text-gray-500 italic">Aucun jeu vidéo disponible pour le moment.</p>
-        </div>
 
-        <div>
-            <h2 class="text-2xl font-bold text-gray-900">Livres</h2>
-            <div v-if="books.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <MediaShow v-for="book in books" :key="book.id" :media="book" />
+            <div v-else-if="error" class="rounded-md bg-red-50 p-4">
+                <h3 class="text-lg font-medium text-red-800">Erreur</h3>
+                <p class="mt-2 text-sm text-red-700">{{ error.message }}</p>
+                <button @click="refresh()" class="mt-4 text-sm font-medium text-red-600 hover:text-red-500">Réessayer</button>
             </div>
-            <p v-else class="text-gray-500 italic">Aucun livre disponible pour le moment.</p>
-        </div>
 
+            <div v-else>
+                <h3 class="mb-4 text-2xl font-bold text-gray-900">{{ selectedCategoryLabel }}</h3>
+                <div v-if="filteredMedia.length > 0" class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
+                    <MediaShow v-for="media in filteredMedia" :key="media.id" :media="media" />
+        </div>
+                <p v-else class="italic text-gray-500">Aucun média disponible dans cette catégorie pour le moment.</p>
+            </div>
+    </div>
     </div>
 </template>
 
 <script setup lang="ts">
 import { MediaType, type Media } from '~~/types/media';
 
+const { data: mediaList, pending, error, refresh } = await useFetch<Media[]>('/api/media');
 
-const { data: mediaList } = await useFetch<Media[]>('/api/media');
+type CategoryValue = 'all' | MediaType
 
-const movies = computed(() => {
-    return (mediaList.value || [])
-        .filter(m => m.type === MediaType.Movie)
-        .slice(0, 3);
-});
+const categories: Array<{ label: string; value: CategoryValue }> = [
+    { label: 'Tous', value: 'all' },
+    { label: 'Films', value: MediaType.Movie },
+    { label: 'Séries', value: MediaType.Serie },
+    { label: 'Jeux vidéo', value: MediaType.Game },
+    { label: 'Livres', value: MediaType.Book }
+]
 
-const series = computed(() => {
-    return (mediaList.value || [])
-        .filter(m => m.type === MediaType.Serie)
-        .slice(0, 3);
-});
+const selectedCategory = ref<CategoryValue>('all')
 
-const games = computed(() => {
-    return (mediaList.value || [])
-        .filter(m => m.type === MediaType.Game)
-        .slice(0, 3);
-});
+const filteredMedia = computed(() => {
+    const allMedia = mediaList.value || []
+    if (selectedCategory.value === 'all') {
+        return allMedia
+    }
 
-const books = computed(() => {
-    return (mediaList.value || [])
-        .filter(m => m.type === MediaType.Book)
-        .slice(0, 3);
-});
+    return allMedia.filter(media => media.type === selectedCategory.value)
+})
+
+const selectedCategoryLabel = computed(() => {
+    return categories.find(category => category.value === selectedCategory.value)?.label || 'Tous'
+})
 </script>

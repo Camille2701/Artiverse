@@ -1,6 +1,21 @@
-# Nuxt Minimal Starter
+# Infos
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+## Utilisation de Tailwind 
+
+Tailwind est utilisé presque partout sauf pour la gestion des couleurs de thèmes où nous avons dû utiliser du css pour que cela fonctionne.
+
+## @apply : 
+**.category-filter-btn**  & **.category-filter-btn--active** : Uniformise les boutons de filtres qui seront présents dans la home page et dans l'admin.
+**.btn-accent** : Sert à uniformiser les boutons présents sur tout le site 
+
+## Responsive : 
+- Navbar responsive
+- Textes responsive
+
+## Cohérence du design : 
+- Même police sur tout le site
+- Couleurs de thèmes utilisées pour uniformiser le visuel global
+
 
 ## Setup
 
