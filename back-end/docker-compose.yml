@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: artiverse-postgres
+    environment:
+      POSTGRES_USER: artiverse_user
+      POSTGRES_PASSWORD: artiverse_password_dev
+      POSTGRES_DB: artiverse
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U artiverse_user -d artiverse"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - artiverse-network
+
+  # FastAPI Backend
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: artiverse-backend
+    environment:
+      DATABASE_URL: postgresql://artiverse_user:artiverse_password_dev@postgres:5432/artiverse
+      SECRET_KEY: your-secret-key-change-in-production-12345678
+      ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: 30
+      DEBUG: "True"
+      ENVIRONMENT: development
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - .:/app
+    networks:
+      - artiverse-network
+    command: >
+      sh -c "
+        echo 'Waiting for database...' &&
+        sleep 10 &&
+        echo 'Starting FastAPI server...' &&
+        uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+      "
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  artiverse-network:
+    driver: bridge
