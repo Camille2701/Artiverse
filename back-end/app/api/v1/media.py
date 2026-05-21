@@ -10,53 +10,147 @@ from app.dependencies.auth import get_current_user
 router = APIRouter(prefix="/media", tags=["media"])
 
 
-@router.post("", response_model=MediaResponse)
+@router.post("")
 def create_media(
-    media_create: MediaCreate,
+    media_create: dict,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Create new media (admin only for MVP)."""
-    media = MediaService.create_media(db, media_create)
-    return media
+    """Create new media (admin only for MVP) - Frontend compatible format."""
+    # Convert frontend format to backend format
+    backend_media_create = {
+        "media_type": media_create.get("type", "movie"),
+        "title": media_create.get("title", ""),
+        "original_title": media_create.get("original_title"),
+        "synopsis": media_create.get("description", ""),
+        "release_date": media_create.get("releaseDate"),
+        "cover_image": media_create.get("image"),
+        "banner_image": media_create.get("banner_image")
+    }
+
+    # Convert to MediaCreate schema
+    media_schema = MediaCreate(**backend_media_create)
+    media = MediaService.create_media(db, media_schema)
+
+    # Return in frontend format
+    return {
+        "success": True,
+        "media": {
+            "id": media.id,
+            "title": media.title,
+            "type": media.media_type.value,
+            "description": media.synopsis,
+            "rating": float(media.average_rating),
+            "releaseDate": media.release_date.isoformat() if media.release_date else None,
+            "image": media.cover_image
+        }
+    }
 
 
-@router.get("", response_model=dict)
+@router.get("")
 def list_media(
     skip: int = 0,
     limit: int = 10,
     db: Session = Depends(get_db)
 ):
-    """Get all media with pagination."""
+    """Get all media with pagination - Frontend compatible format."""
     from app.models import Media
     media_list = db.query(Media).offset(skip).limit(limit).all()
     total = db.query(Media).count()
-    
-    return {
-        "items": media_list,
-        "total": total,
-        "skip": skip,
-        "limit": limit
-    }
+
+    # Transform to frontend compatible format
+    frontend_media = []
+    for media in media_list:
+        frontend_media.append({
+            "id": media.id,
+            "title": media.title,
+            "type": media.media_type.value,
+            "description": media.synopsis,
+            "rating": float(media.average_rating),
+            "releaseDate": media.release_date.isoformat() if media.release_date else None,
+            "image": media.cover_image
+        })
+
+    return frontend_media
 
 
 @router.get("/search", response_model=dict)
 def search_media(
-    q: str,
+    q: str = "",
     media_type: str | None = None,
+    min_rating: float | None = None,
+    max_rating: float | None = None,
+    year_from: int | None = None,
+    year_to: int | None = None,
+    sort_by: str = "relevance",
     skip: int = 0,
     limit: int = 10,
     db: Session = Depends(get_db)
 ):
-    """Search media by title."""
-    items, total = MediaService.search_media(db, q, media_type, skip, limit)
-    
+    """Enhanced search media with multiple filters.
+
+    Parameters:
+    - q: Search query (searches title, original title, and synopsis)
+    - media_type: Filter by media type (movie, tv_series, book, video_game)
+    - min_rating: Minimum average rating (1-10)
+    - max_rating: Maximum average rating (1-10)
+    - year_from: Minimum release year
+    - year_to: Maximum release year
+    - sort_by: Sort order (relevance, rating, popularity, newest, oldest)
+    - skip: Pagination offset
+    - limit: Results per page (max 100)
+    """
+    # Validate parameters
+    if limit > 100:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Limit cannot exceed 100"
+        )
+
+    if min_rating is not None and (min_rating < 1 or min_rating > 10):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Minimum rating must be between 1 and 10"
+        )
+
+    if max_rating is not None and (max_rating < 1 or max_rating > 10):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Maximum rating must be between 1 and 10"
+        )
+
+    if min_rating is not None and max_rating is not None and min_rating > max_rating:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Minimum rating cannot be greater than maximum rating"
+        )
+
+    valid_sort_options = ["relevance", "rating", "popularity", "newest", "oldest"]
+    if sort_by not in valid_sort_options:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid sort_by option. Valid options: {', '.join(valid_sort_options)}"
+        )
+
+    items, total = MediaService.search_media(
+        db, q, media_type, skip, limit,
+        min_rating, max_rating, year_from, year_to, sort_by
+    )
+
     return {
         "items": items,
         "total": total,
         "skip": skip,
         "limit": limit,
-        "query": q
+        "query": q,
+        "filters": {
+            "media_type": media_type,
+            "min_rating": min_rating,
+            "max_rating": max_rating,
+            "year_from": year_from,
+            "year_to": year_to
+        },
+        "sort_by": sort_by
     }
 
 

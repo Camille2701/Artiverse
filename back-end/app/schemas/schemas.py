@@ -78,8 +78,16 @@ class MediaResponse(MediaBase):
     created_at: datetime
     updated_at: datetime
 
+    # Additional fields for frontend compatibility
+    type: MediaTypeEnum = Field(alias="media_type")
+    description: Optional[str] = Field(alias="synopsis")
+    rating: float = Field(alias="average_rating")
+    image: Optional[str] = Field(alias="cover_image")
+    releaseDate: Optional[datetime] = Field(alias="release_date")
+
     class Config:
         from_attributes = True
+        populate_by_name = True
 
 
 # ==================== RATING SCHEMAS ====================

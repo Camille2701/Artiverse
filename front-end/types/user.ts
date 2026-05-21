@@ -1,9 +1,9 @@
 export type User = {
-    id: number,
-    name: string,
+    id: string,
+    username: string,
     email: string,
-    role: 'admin' | 'user',
-    isActive: boolean,
-    avatar: string,
-    age: number
+    bio: string | null,
+    avatar_url: string | null,
+    level: number,
+    experience_points: number
 }

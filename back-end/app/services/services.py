@@ -1,10 +1,12 @@
 from sqlalchemy.orm import Session
-from app.models import User, Media, Rating, Review, List, ListItem
+from app.models import User, Media, Rating, Review, List, ListItem, ActivityType
 from app.schemas import (
     UserCreate, MediaCreate, RatingCreate, ReviewCreate, ListCreate
 )
 from app.utils.security import get_password_hash
 from sqlalchemy import func, desc
+from app.services.xp_service import XPService
+from app.services.social_service import SocialService
 
 
 class UserService:
@@ -67,13 +69,56 @@ class MediaService:
         return db.query(Media).filter(Media.id == media_id).first()
     
     @staticmethod
-    def search_media(db: Session, query: str, media_type: str | None = None, skip: int = 0, limit: int = 10) -> tuple[list[Media], int]:
-        """Search media by title."""
-        q = db.query(Media).filter(Media.title.ilike(f"%{query}%"))
-        
+    def search_media(db: Session, query: str, media_type: str | None = None, skip: int = 0, limit: int = 10,
+                    min_rating: float | None = None, max_rating: float | None = None,
+                    year_from: int | None = None, year_to: int | None = None,
+                    sort_by: str = "relevance") -> tuple[list[Media], int]:
+        """Enhanced search media with multiple filters."""
+        # Build base query
+        if query:
+            q = db.query(Media).filter(
+                (Media.title.ilike(f"%{query}%")) |
+                (Media.original_title.ilike(f"%{query}%")) |
+                (Media.synopsis.ilike(f"%{query}%"))
+            )
+        else:
+            q = db.query(Media)
+
+        # Apply filters
         if media_type:
             q = q.filter(Media.media_type == media_type)
-        
+
+        if min_rating is not None:
+            q = q.filter(Media.average_rating >= min_rating)
+
+        if max_rating is not None:
+            q = q.filter(Media.average_rating <= max_rating)
+
+        if year_from is not None:
+            q = q.filter(Media.release_date >= f"{year_from}-01-01")
+
+        if year_to is not None:
+            q = q.filter(Media.release_date <= f"{year_to}-12-31")
+
+        # Apply sorting
+        if sort_by == "rating":
+            q = q.order_by(desc(Media.average_rating))
+        elif sort_by == "popularity":
+            q = q.order_by(desc(Media.popularity_score))
+        elif sort_by == "newest":
+            q = q.order_by(desc(Media.release_date))
+        elif sort_by == "oldest":
+            q = q.order_by(Media.release_date)
+        else:  # relevance (default)
+            # For relevance, prioritize exact title matches
+            if query:
+                q = q.order_by(
+                    Media.title.ilike(query).desc(),
+                    Media.popularity_score.desc()
+                )
+            else:
+                q = q.order_by(desc(Media.popularity_score))
+
         total = q.count()
         items = q.offset(skip).limit(limit).all()
         return items, total
@@ -90,11 +135,12 @@ class RatingService:
     @staticmethod
     def create_or_update_rating(db: Session, rating_create: RatingCreate, user_id: str) -> Rating:
         """Create or update a rating."""
+        user = db.query(User).filter(User.id == user_id).first()
         existing_rating = db.query(Rating).filter(
             Rating.user_id == user_id,
             Rating.media_id == rating_create.media_id
         ).first()
-        
+
         if existing_rating:
             existing_rating.score = rating_create.score
             db.add(existing_rating)
@@ -105,7 +151,11 @@ class RatingService:
                 score=rating_create.score
             )
             db.add(db_rating)
-        
+
+            # Award XP for rating (only for new ratings)
+            if user:
+                XPService.award_rating_xp(db, user)
+
         db.commit()
         db.refresh(db.query(Rating).filter(
             Rating.user_id == user_id,
@@ -137,6 +187,7 @@ class ReviewService:
     @staticmethod
     def create_review(db: Session, review_create: ReviewCreate, user_id: str) -> Review:
         """Create a new review."""
+        user = db.query(User).filter(User.id == user_id).first()
         db_review = Review(
             user_id=user_id,
             media_id=review_create.media_id,
@@ -145,6 +196,18 @@ class ReviewService:
             spoiler=review_create.spoiler
         )
         db.add(db_review)
+
+        # Award XP for creating a review
+        if user:
+            XPService.award_review_xp(db, user)
+
+            # Log activity
+            SocialService.log_activity(
+                db, user_id, ActivityType.REVIEW_CREATED,
+                entity_type="media", entity_id=review_create.media_id,
+                metadata={"review_title": review_create.title}
+            )
+
         db.commit()
         db.refresh(db_review)
         return db_review
@@ -183,12 +246,18 @@ class ListService:
     @staticmethod
     def create_list(db: Session, list_create: ListCreate, user_id: str) -> List:
         """Create a new list."""
+        user = db.query(User).filter(User.id == user_id).first()
         db_list = List(
             user_id=user_id,
             name=list_create.name,
             visibility=list_create.visibility
         )
         db.add(db_list)
+
+        # Award XP for creating a list
+        if user:
+            XPService.award_list_creation_xp(db, user)
+
         db.commit()
         db.refresh(db_list)
         return db_list
@@ -206,11 +275,19 @@ class ListService:
     @staticmethod
     def add_to_list(db: Session, list_id: str, media_id: str) -> ListItem:
         """Add media to a list."""
+        list_obj = db.query(List).filter(List.id == list_id).first()
+        user = db.query(User).filter(User.id == list_obj.user_id).first() if list_obj else None
+
         list_item = ListItem(
             list_id=list_id,
             media_id=media_id
         )
         db.add(list_item)
+
+        # Award XP for adding media to list
+        if user:
+            XPService.award_media_added_to_list_xp(db, user)
+
         db.commit()
         db.refresh(list_item)
         return list_item

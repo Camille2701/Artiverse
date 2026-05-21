@@ -1,0 +1,105 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Media type colors */
+@layer utilities {
+  .media-movie {
+    color: #FF4757;
+  }
+  .media-movie-bg {
+    background-color: #FF4757;
+  }
+  .media-movie-border {
+    border-color: #FF4757;
+  }
+
+  .media-series {
+    color: #9B51E0;
+  }
+  .media-series-bg {
+    background-color: #9B51E0;
+  }
+  .media-series-border {
+    border-color: #9B51E0;
+  }
+
+  .media-game {
+    color: #00D2D3;
+  }
+  .media-game-bg {
+    background-color: #00D2D3;
+  }
+  .media-game-border {
+    border-color: #00D2D3;
+  }
+
+  .media-book {
+    color: #ECCC68;
+  }
+  .media-book-bg {
+    background-color: #ECCC68;
+  }
+  .media-book-border {
+    border-color: #ECCC68;
+  }
+}
+
+@layer components {
+    .category-filter-btn {
+        @apply rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition-all duration-200 ease-out hover:border-slate-400 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-1 active:scale-[0.98];
+    }
+
+    .category-filter-btn--active {
+        @apply text-white;
+        background-color: #6366f1;
+        border-color: #6366f1;
+    }
+
+    .category-filter-btn--active:hover {
+        background-color: #4f46e5;
+        border-color: #4f46e5;
+    }
+
+    .btn-accent {
+        @apply w-full rounded-md px-4 py-2 text-white transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-1;
+        background-color: #6366f1;
+    }
+
+    .btn-accent:hover {
+        background-color: #4f46e5;
+    }
+
+    .text-link-accent {
+        @apply text-accent transition-colors hover:text-accent-hover hover:underline;
+    }
+
+    .card {
+        @apply bg-white border border-slate-200 rounded-lg shadow-md;
+    }
+
+    .dark .card {
+        @apply bg-slate-800 border-slate-700;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+    }
+
+    .input-field {
+        @apply w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-slate-900 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-1 transition-colors;
+    }
+
+    .dark .input-field {
+        @apply border-slate-700 bg-slate-900 text-slate-100 focus:ring-offset-slate-900;
+    }
+
+    .theme-toggle {
+        @apply p-2 rounded-full transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-accent;
+    }
+
+    .light .theme-toggle {
+        @apply bg-slate-100 text-slate-600 hover:bg-slate-200;
+    }
+
+    .dark .theme-toggle {
+        @apply bg-slate-800 text-cyan-400 hover:bg-slate-900;
+    }
+}
