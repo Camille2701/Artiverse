@@ -1,7 +1,7 @@
 <template>
   <form @submit.prevent="submit" class="glass p-6 rounded-xl border border-white/10">
     <h3 class="text-xl font-display font-bold mb-6 text-text-primary flex items-center gap-2">
-      <span class="text-2xl">✨</span>
+      <UIIcon name="plus" size="medium" />
       Ajouter un média
     </h3>
     <div class="space-y-5">
@@ -24,10 +24,10 @@
           v-model="form.type"
           class="input-field cursor-pointer"
         >
-          <option value="Movie">🎬 Film</option>
-          <option value="Serie">📺 Série</option>
-          <option value="Game">🎮 Jeu Vidéo</option>
-          <option value="Book">📚 Livre</option>
+          <option value="Movie">Film</option>
+          <option value="Serie">Série</option>
+          <option value="Game">Jeu Vidéo</option>
+          <option value="Book">Livre</option>
         </select>
       </div>
 
@@ -45,7 +45,7 @@
       <div class="pt-2">
         <button type="submit" class="btn-primary w-full">
           <span class="flex items-center justify-center gap-2">
-            <span>➕</span>
+            <UIIcon name="plus" size="small" />
             Ajouter
           </span>
         </button>
@@ -57,6 +57,7 @@
 <script setup lang="ts">
 import { reactive } from 'vue';
 import { MediaType } from '~/types/media';
+import UIIcon from '~/components/icons/UIIcon.vue';
 
 const emit = defineEmits(['submit']);
 

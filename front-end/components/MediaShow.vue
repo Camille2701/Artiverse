@@ -14,7 +14,7 @@
             class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
           />
           <div v-else class="h-full flex items-center justify-center">
-            <span class="text-5xl">{{ mediaTypeIcon }}</span>
+            <MediaTypeIcon :type="mediaTypeIcon" size="large" />
           </div>
         </div>
 
@@ -34,7 +34,7 @@
         <!-- Rating badge -->
         <div v-if="props.media.rating" class="absolute top-3 right-3 z-10">
           <div class="glass rounded-lg px-3 py-1 flex items-center gap-1">
-            <span class="text-yellow-400">★</span>
+            <UIIcon name="star" size="small" class="text-yellow-400" />
             <span class="text-text-primary font-semibold text-sm">{{ props.media.rating }}/10</span>
           </div>
         </div>
@@ -45,13 +45,13 @@
             class="glass p-2 rounded-lg hover:bg-white/20 transition-colors"
             title="Ajouter aux favoris"
           >
-            ❤️
+            <UIIcon name="heart" size="small" />
           </button>
           <button
             class="glass p-2 rounded-lg hover:bg-white/20 transition-colors"
             title="Ajouter à la liste"
           >
-            ➕
+            <UIIcon name="plus" size="small" />
           </button>
         </div>
       </div>
@@ -65,11 +65,11 @@
 
         <div class="mb-3 space-y-2 text-sm text-text-secondary">
           <div v-if="props.media.releaseDate" class="flex items-center">
-            <span class="mr-2">📅</span>
+            <UIIcon name="calendar" size="small" class="mr-2" />
             <span>{{ formatDate(props.media.releaseDate) }}</span>
           </div>
           <div v-if="props.media.genre" class="flex items-center">
-            <span class="mr-2">🏷️</span>
+            <UIIcon name="tag" size="small" class="mr-2" />
             <span>{{ props.media.genre }}</span>
           </div>
         </div>
@@ -84,6 +84,8 @@
 
 <script setup lang="ts">
 import { MediaType, type Media } from '~/types/media';
+import MediaTypeIcon from '~/components/icons/MediaTypeIcon.vue';
+import UIIcon from '~/components/icons/UIIcon.vue';
 
 const props = defineProps<{
   media: Media
@@ -132,18 +134,18 @@ function getMediaTypeBadgeClass(type: string) {
   return 'bg-bg-tertiary text-text-secondary border border-border-color'
 }
 
-function getMediaTypeIcon(type: string) {
-  const icons: Record<string, string> = {
-    'movie': '🎬',
-    'Movie': '🎬',
-    'tv_series': '📺',
-    'Serie': '📺',
-    'video_game': '🎮',
-    'Game': '🎮',
-    'book': '📚',
-    'Book': '📚'
+function getMediaTypeIcon(type: string): 'all' | 'movie' | 'series' | 'game' | 'book' {
+  const icons: Record<string, 'all' | 'movie' | 'series' | 'game' | 'book'> = {
+    'movie': 'movie',
+    'Movie': 'movie',
+    'tv_series': 'series',
+    'Serie': 'series',
+    'video_game': 'game',
+    'Game': 'game',
+    'book': 'book',
+    'Book': 'book'
   }
-  return icons[type] || '📄'
+  return icons[type] || 'all'
 }
 
 const mediaTypeLabel = computed(() => getMediaTypeLabel(props.media.type))

@@ -25,7 +25,7 @@
           />
         </div>
         <div v-else class="text-center relative z-10">
-          <span class="text-5xl block mb-2 transition-transform duration-300 group-hover:scale-110">{{ mediaTypeIcon }}</span>
+          <MediaTypeIcon :type="mediaTypeIcon" size="large" class="mb-2 transition-transform duration-300 group-hover:scale-110 mx-auto" />
           <p class="text-text-tertiary text-sm font-medium">Image non disponible</p>
         </div>
       </div>
@@ -33,7 +33,7 @@
       <!-- Rating badge -->
       <div v-if="media.rating" class="absolute top-3 right-3 z-10">
         <div class="glass rounded-lg px-3 py-1.5 flex items-center gap-1.5 shadow-lg backdrop-blur-md">
-          <span class="text-yellow-400 text-sm">★</span>
+          <UIIcon name="star" size="small" class="text-yellow-400" />
           <span class="text-text-primary font-bold text-sm">{{ media.rating }}/10</span>
         </div>
       </div>
@@ -51,11 +51,11 @@
       <!-- Meta information -->
       <div class="space-y-2 mb-4">
         <div v-if="media.releaseDate" class="flex items-center text-sm">
-          <span class="text-text-tertiary mr-2 text-base">📅</span>
+          <UIIcon name="calendar" size="small" class="text-text-tertiary mr-2" />
           <span class="text-text-secondary font-medium">{{ formatDate(media.releaseDate) }}</span>
         </div>
         <div v-if="media.genre" class="flex items-center text-sm">
-          <span class="text-text-tertiary mr-2 text-base">🏷️</span>
+          <UIIcon name="tag" size="small" class="text-text-tertiary mr-2" />
           <span class="text-text-secondary font-medium">{{ media.genre }}</span>
         </div>
       </div>
@@ -85,7 +85,7 @@
             class="px-3 py-2.5 rounded-xl text-text-tertiary hover:text-red-400 hover:bg-red-400/10 transition-all duration-300 hover:scale-105"
             title="Supprimer"
           >
-            🗑️
+            <UIIcon name="trash" size="small" />
           </button>
         </div>
       </div>
@@ -95,6 +95,8 @@
 
 <script setup lang="ts">
 import { MediaType, type Media } from '~/types/media';
+import MediaTypeIcon from '~/components/icons/MediaTypeIcon.vue';
+import UIIcon from '~/components/icons/UIIcon.vue';
 
 const props = defineProps<{
   media: Media
@@ -147,13 +149,13 @@ function getMediaTypeBadgeClass(type: MediaType) {
 function getMediaTypeLabel(type: MediaType) {
   switch (type) {
     case MediaType.Movie:
-      return '🎬 Film';
+      return 'Film';
     case MediaType.Serie:
-      return '📺 Série';
+      return 'Série';
     case MediaType.Game:
-      return '🎮 Jeu';
+      return 'Jeu';
     case MediaType.Book:
-      return '📚 Livre';
+      return 'Livre';
     default:
       return type;
   }
@@ -162,15 +164,15 @@ function getMediaTypeLabel(type: MediaType) {
 function getMediaTypeIcon(type: MediaType) {
   switch (type) {
     case MediaType.Movie:
-      return '🎬';
+      return 'movie';
     case MediaType.Serie:
-      return '📺';
+      return 'series';
     case MediaType.Game:
-      return '🎮';
+      return 'game';
     case MediaType.Book:
-      return '📚';
+      return 'book';
     default:
-      return '📄';
+      return 'all';
   }
 }
 

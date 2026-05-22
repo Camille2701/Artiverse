@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppLogo from '~/components/icons/AppLogo.vue';
 // @ts-ignore
 const { user, isAuthenticated, logout } = useAuth()
 // @ts-ignore
@@ -18,9 +19,7 @@ async function handleLogout() {
         <!-- Logo and main navigation -->
         <div class="flex">
           <div class="flex flex-shrink-0 items-center">
-            <NuxtLink to="/" class="text-2xl font-bold text-accent">
-              🎬 Artiverse
-            </NuxtLink>
+            <AppLogo showText size="medium" />
           </div>
 
           <div class="hidden sm:ml-6 sm:flex sm:space-x-8">

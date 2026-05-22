@@ -38,10 +38,35 @@ export default defineEventHandler(async (event) => {
     return response;
   } catch (error: any) {
     console.error('Registration error:', error);
+    console.error('Error details:', JSON.stringify(error, null, 2));
+
+    // Extract error details from different possible error structures
+    let errorMessage = 'Registration failed';
+    let statusCode = 500;
+
+    if (error?.response) {
+      // Nuxt $fetch error structure
+      statusCode = error.response.status || 500;
+      errorMessage = error.response._data?.detail ||
+                    error.response._data?.message ||
+                    error.response._data?.error ||
+                    'Registration failed';
+    } else if (error?.data) {
+      // Direct error structure
+      statusCode = error.statusCode || 500;
+      errorMessage = error.data?.detail ||
+                    error.data?.message ||
+                    'Registration failed';
+    } else if (error?.statusCode) {
+      statusCode = error.statusCode;
+      errorMessage = error.message || 'Registration failed';
+    } else if (typeof error === 'string') {
+      errorMessage = error;
+    }
 
     throw createError({
-      statusCode: error.statusCode || 400,
-      statusMessage: error.data?.detail || 'Registration failed'
+      statusCode,
+      statusMessage: errorMessage
     });
   }
 })

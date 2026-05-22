@@ -23,7 +23,7 @@
         ]"
         @click="selectedCategory = category.value"
       >
-        <span class="mr-2">{{ category.icon }}</span>
+        <MediaTypeIcon :type="category.icon" size="small" class="mr-2" />
         {{ category.label }}
       </button>
     </div>
@@ -40,7 +40,7 @@
       <div v-else-if="error" class="card p-6 border-l-4 border-l-red-500">
         <div class="flex items-start gap-4">
           <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-red-500/20">
-            <span class="text-red-400">⚠️</span>
+            <UIIcon name="warning" size="medium" class="text-red-400" />
           </div>
           <div class="flex-1">
             <h3 class="text-lg font-semibold text-red-400">Erreur de chargement</h3>
@@ -71,7 +71,7 @@
         </div>
 
         <div v-else class="card p-12 text-center">
-          <div class="text-6xl mb-4">{{ getEmptyStateIcon() }}</div>
+          <MediaTypeIcon :type="getEmptyStateIcon()" size="large" class="mb-4 mx-auto" />
           <p class="text-text-secondary italic font-body">
             Aucun média disponible dans cette catégorie pour le moment.
           </p>
@@ -84,18 +84,20 @@
 <script setup lang="ts">
 import { MediaType, type Media } from '~/types/media';
 import { useApi } from '~/composables/useApi';
+import MediaTypeIcon from '~/components/icons/MediaTypeIcon.vue';
+import UIIcon from '~/components/icons/UIIcon.vue';
 
 const { getErrorMessage } = useApi()
 const { data: mediaList, pending, error, refresh } = await useFetch<Media[]>('/api/media');
 
 type CategoryValue = 'all' | MediaType
 
-const categories: Array<{ label: string; value: CategoryValue; icon: string }> = [
-    { label: 'Tous', value: 'all', icon: '🌟' },
-    { label: 'Films', value: MediaType.Movie, icon: '🎬' },
-    { label: 'Séries', value: MediaType.Serie, icon: '📺' },
-    { label: 'Jeux vidéo', value: MediaType.Game, icon: '🎮' },
-    { label: 'Livres', value: MediaType.Book, icon: '📚' }
+const categories: Array<{ label: string; value: CategoryValue; icon: 'all' | 'movie' | 'series' | 'game' | 'book' }> = [
+    { label: 'Tous', value: 'all', icon: 'all' },
+    { label: 'Films', value: MediaType.Movie, icon: 'movie' },
+    { label: 'Séries', value: MediaType.Serie, icon: 'series' },
+    { label: 'Jeux vidéo', value: MediaType.Game, icon: 'game' },
+    { label: 'Livres', value: MediaType.Book, icon: 'book' }
 ]
 
 const selectedCategory = ref<CategoryValue>('all')
@@ -128,18 +130,18 @@ function getCategoryClass(category: CategoryValue): string {
   }
 }
 
-function getEmptyStateIcon(): string {
+function getEmptyStateIcon(): 'all' | 'movie' | 'series' | 'game' | 'book' {
   switch (selectedCategory.value) {
     case MediaType.Movie:
-      return '🎬'
+      return 'movie'
     case MediaType.Serie:
-      return '📺'
+      return 'series'
     case MediaType.Game:
-      return '🎮'
+      return 'game'
     case MediaType.Book:
-      return '📚'
+      return 'book'
     default:
-      return '📄'
+      return 'all'
   }
 }
 </script>

@@ -3,6 +3,7 @@
 import type { UserBadge, BadgeProgress } from '~/types/badge'
 // @ts-ignore
 import { BadgeTier, BadgeCategory } from '~/types/badge'
+import UIIcon from '~/components/icons/UIIcon.vue';
 
 interface Props {
   badge: UserBadge | BadgeProgress
@@ -125,7 +126,7 @@ const isComplete = computed(() => {
       ]"
       :title="getDisplayName(badge)"
     >
-      <span class="select-none">{{ badge.icon || '🏆' }}</span>
+      <UIIcon :name="badge.icon as any || 'trophy'" size="large" />
     </div>
 
     <!-- Holographic effect for rare badges -->
@@ -184,7 +185,7 @@ const isComplete = computed(() => {
       class="absolute -top-1 -right-1 bg-accent text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
       title="Badge équipé"
     >
-      ✓
+      <UIIcon name="check" size="small" />
     </div>
 
     <!-- Incomplete indicator -->
@@ -193,7 +194,7 @@ const isComplete = computed(() => {
       class="absolute -bottom-1 -right-1 bg-gray-400 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
       title="Non complété"
     >
-      🔒
+      <UIIcon name="lock" size="small" />
     </div>
   </div>
 </template>

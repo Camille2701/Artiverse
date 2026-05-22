@@ -53,21 +53,21 @@
         <!-- Gamification stats -->
         <div class="flex items-center gap-6 mt-4">
           <div class="flex items-center gap-2">
-            <span class="text-2xl">⭐</span>
+            <UIIcon name="star" size="medium" />
             <div>
               <p class="text-text-tertiary text-xs">XP</p>
               <p class="text-text-primary font-semibold">{{ user.experiencePoints || '0' }}</p>
             </div>
           </div>
           <div class="flex items-center gap-2">
-            <span class="text-2xl">🏆</span>
+            <UIIcon name="trophy" size="medium" />
             <div>
               <p class="text-text-tertiary text-xs">Niveau</p>
               <p class="text-text-primary font-semibold">{{ user.level || '1' }}</p>
             </div>
           </div>
           <div class="flex items-center gap-2">
-            <span class="text-2xl">🎖️</span>
+            <UIIcon name="fire" size="medium" />
             <div>
               <p class="text-text-tertiary text-xs">Badges</p>
               <p class="text-text-primary font-semibold">{{ user.badges?.length || '0' }}</p>
@@ -80,6 +80,8 @@
 </template>
 
 <script setup lang="ts">
+import UIIcon from '~/components/icons/UIIcon.vue';
+
 interface Media {
   id: string
   title: string

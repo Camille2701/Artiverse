@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import UIIcon from '~/components/icons/UIIcon.vue';
+
 const router = useRouter()
 const { isAuthenticated, logout } = useAuth()
+const { isDark } = useTheme()
 
 const handleLogout = () => {
     logout()
@@ -11,6 +14,12 @@ const handleLogout = () => {
 onMounted(() => {
   document.documentElement.classList.add('dark')
 })
+
+const logoSrc = computed(() => {
+  return isDark.value
+    ? '/assets/logos/banner_white_bg.png'
+    : '/assets/logos/banner.png';
+});
 </script>
 
 <template>
@@ -22,8 +31,12 @@ onMounted(() => {
           <NuxtLink to="/home" class="flex items-center gap-3 group">
             <div class="relative h-11 w-11">
               <div class="absolute inset-0 bg-gradient-to-br from-accent-movie via-accent-series to-accent-game rounded-xl blur-sm opacity-60 group-hover:opacity-100 transition-opacity duration-300"></div>
-              <div class="relative h-11 w-11 rounded-xl bg-gradient-to-br from-accent-movie via-accent-series to-accent-game flex items-center justify-center text-xl transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3 shadow-lg">
-                🎬
+              <div class="relative h-11 w-11 rounded-xl bg-gradient-to-br from-accent-movie via-accent-series to-accent-game flex items-center justify-center transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3 shadow-lg">
+                <img
+                  :src="logoSrc"
+                  alt="Artiverse Logo"
+                  class="h-8 w-8 object-contain"
+                />
               </div>
             </div>
             <h1 class="text-2xl font-display font-bold tracking-tight text-text-primary group-hover:gradient-text transition-all duration-300">
@@ -42,7 +55,7 @@ onMounted(() => {
           <template v-if="isAuthenticated">
             <div class="group">
               <NuxtLink to="/users/profile" class="nav-link text-sm px-3 py-2 rounded-lg hover:bg-bg-secondary/50 transition-all duration-300 flex items-center gap-2">
-                <span>👤</span>
+                <UIIcon name="user" size="small" />
                 <span class="hidden sm:inline">Profil</span>
               </NuxtLink>
             </div>
@@ -51,7 +64,7 @@ onMounted(() => {
                 @click="handleLogout"
                 class="nav-link text-sm px-3 py-2 rounded-lg hover:bg-bg-secondary/50 transition-all duration-300 flex items-center gap-2"
               >
-                <span>🚪</span>
+                <UIIcon name="close" size="small" />
                 <span class="hidden sm:inline">Se déconnecter</span>
               </button>
             </div>
@@ -84,8 +97,12 @@ onMounted(() => {
       <div class="container mx-auto px-4 py-8">
         <div class="flex flex-col md:flex-row justify-between items-center gap-6">
           <div class="flex items-center gap-3">
-            <div class="h-8 w-8 rounded-lg bg-gradient-to-br from-accent-movie via-accent-series to-accent-game flex items-center justify-center text-sm">
-              🎬
+            <div class="h-8 w-8 rounded-lg bg-gradient-to-br from-accent-movie via-accent-series to-accent-game flex items-center justify-center">
+              <img
+                :src="logoSrc"
+                alt="Artiverse Logo"
+                class="h-6 w-6 object-contain"
+              />
             </div>
             <p class="text-text-secondary text-sm font-body">
               &copy; {{ new Date().getFullYear() }} Artiverse. Tous droits réservés.
