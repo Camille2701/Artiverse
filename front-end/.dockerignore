@@ -9,3 +9,12 @@ dist
 .DS_Store
 .vscode
 .idea
+*.swp
+*.swo
+*~
+coverage
+.nitro
+.cache
+.temp
+npm-debug.log
+yarn-error.log

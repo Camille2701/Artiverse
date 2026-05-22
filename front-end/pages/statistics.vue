@@ -69,37 +69,40 @@ const totalPercentage = computed(() => {
 <template>
   <div class="mx-auto my-4 w-full max-w-6xl px-4 py-4 sm:my-6 sm:px-6 sm:py-6 lg:my-8 lg:px-8 lg:py-8">
     <div class="mb-8">
-      <h1 class="text-3xl font-extrabold text-gray-900 dark:text-text-primary sm:text-4xl">
-        Mes Statistiques
+      <h1 class="text-3xl sm:text-4xl font-display font-bold text-text-primary">
+        <span class="gradient-text">Mes</span> Statistiques
       </h1>
-      <p class="mt-2 text-sm text-gray-600 dark:text-text-secondary">
+      <p class="mt-2 text-sm text-text-secondary font-body">
         Découvrez votre activité et vos préférences culturelles
       </p>
     </div>
 
-    <div v-if="loading" class="flex items-center justify-center py-20">
-      <div class="h-12 w-12 animate-spin rounded-full border-b-2 border-accent"></div>
-      <p class="ml-3 text-gray-600 dark:text-text-secondary">Chargement des statistiques...</p>
+    <div v-if="loading" class="flex flex-col items-center justify-center py-20">
+      <div class="spinner !h-12 !w-12 !border-4"></div>
+      <p class="mt-4 text-text-secondary font-body">Chargement des statistiques...</p>
     </div>
 
-    <div v-else-if="error" class="rounded-md bg-red-50 p-6 dark:bg-red-900/20 dark:border dark:border-red-800">
+    <div v-else-if="error" class="glass rounded-xl p-6 border border-red-500/30">
       <div class="flex items-start gap-4">
-        <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/40">
-          <span class="text-red-600 dark:text-red-400">⚠️</span>
+        <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-red-500/20">
+          <span class="text-red-400 text-lg">⚠️</span>
         </div>
         <div class="flex-1">
-          <h3 class="text-lg font-medium text-red-800 dark:text-red-400">Erreur</h3>
-          <p class="mt-2 text-sm text-red-700 dark:text-red-300">{{ error }}</p>
+          <h3 class="text-lg font-semibold text-red-400">Erreur</h3>
+          <p class="mt-2 text-sm text-red-300">{{ error }}</p>
         </div>
       </div>
     </div>
 
-    <div v-else-if="!isAuthenticated" class="rounded-md bg-blue-50 p-8 text-center dark:bg-blue-900/20 dark:border dark:border-blue-800">
-      <h3 class="text-lg font-medium text-blue-800 dark:text-blue-400 mb-2">Connexion requise</h3>
-      <p class="text-blue-700 dark:text-blue-300 mb-4">Connectez-vous pour voir vos statistiques personnelles.</p>
+    <div v-else-if="!isAuthenticated" class="glass rounded-xl p-8 text-center border border-accent/20">
+      <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-accent/10 flex items-center justify-center">
+        <span class="text-3xl">🔐</span>
+      </div>
+      <h3 class="text-xl font-semibold text-accent mb-2 font-display">Connexion requise</h3>
+      <p class="text-text-secondary font-body mb-6">Connectez-vous pour voir vos statistiques personnelles.</p>
       <NuxtLink
         to="/users/login"
-        class="inline-flex items-center rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition-all duration-200 ease-out hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-1 dark:focus:ring-offset-bg-secondary"
+        class="btn-primary px-6 py-3"
       >
         Se connecter
       </NuxtLink>
@@ -108,27 +111,27 @@ const totalPercentage = computed(() => {
     <div v-else-if="statistics" class="space-y-8">
       <!-- Overview Cards -->
       <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <div class="card p-6 text-center">
-          <div class="text-3xl font-bold text-accent">{{ statistics.total_reviews }}</div>
-          <div class="mt-2 text-sm font-medium text-gray-600 dark:text-text-secondary">Avis</div>
+        <div class="stat-card text-center">
+          <div class="text-4xl font-extrabold text-accent font-display">{{ statistics.total_reviews }}</div>
+          <div class="mt-2 text-sm font-medium text-text-secondary font-body">Avis</div>
         </div>
-        <div class="card p-6 text-center">
-          <div class="text-3xl font-bold text-accent-game">{{ statistics.total_ratings }}</div>
-          <div class="mt-2 text-sm font-medium text-gray-600 dark:text-text-secondary">Notes</div>
+        <div class="stat-card text-center">
+          <div class="text-4xl font-extrabold text-accent-game font-display">{{ statistics.total_ratings }}</div>
+          <div class="mt-2 text-sm font-medium text-text-secondary font-body">Notes</div>
         </div>
-        <div class="card p-6 text-center">
-          <div class="text-3xl font-bold text-accent-series">{{ statistics.total_lists }}</div>
-          <div class="mt-2 text-sm font-medium text-gray-600 dark:text-text-secondary">Listes</div>
+        <div class="stat-card text-center">
+          <div class="text-4xl font-extrabold text-accent-series font-display">{{ statistics.total_lists }}</div>
+          <div class="mt-2 text-sm font-medium text-text-secondary font-body">Listes</div>
         </div>
-        <div class="card p-6 text-center">
-          <div class="text-3xl font-bold text-accent-book">{{ statistics.total_media_in_lists }}</div>
-          <div class="mt-2 text-sm font-medium text-gray-600 dark:text-text-secondary">Médias listés</div>
+        <div class="stat-card text-center">
+          <div class="text-4xl font-extrabold text-accent-book font-display">{{ statistics.total_media_in_lists }}</div>
+          <div class="mt-2 text-sm font-medium text-text-secondary font-body">Médias listés</div>
         </div>
       </div>
 
       <!-- Taste Distribution -->
       <div class="card p-6">
-        <h3 class="text-xl font-bold text-gray-900 dark:text-text-primary mb-6">
+        <h3 class="text-xl font-bold text-text-primary mb-6 font-display">
           Répartition des goûts
         </h3>
         <div class="space-y-4">
@@ -137,11 +140,11 @@ const totalPercentage = computed(() => {
             :key="item.type"
             class="flex items-center gap-4"
           >
-            <div class="w-24 text-sm font-medium text-gray-700 dark:text-text-secondary">
+            <div class="w-24 text-sm font-medium text-text-secondary font-body">
               {{ getMediaTypeLabel(item.type) }}
             </div>
             <div class="flex-1">
-              <div class="h-4 rounded-full bg-gray-200 dark:bg-bg-tertiary overflow-hidden">
+              <div class="h-3 rounded-full bg-bg-tertiary overflow-hidden">
                 <div
                   class="h-full rounded-full transition-all duration-500 ease-out"
                   :class="getMediaTypeColor(item.type)"
@@ -149,10 +152,10 @@ const totalPercentage = computed(() => {
                 ></div>
               </div>
             </div>
-            <div class="w-20 text-right text-sm font-bold text-gray-900 dark:text-text-primary">
+            <div class="w-20 text-right text-sm font-bold text-text-primary font-display">
               {{ item.percentage }}%
             </div>
-            <div class="w-16 text-right text-sm text-gray-600 dark:text-text-secondary">
+            <div class="w-16 text-right text-sm text-text-secondary font-body">
               ({{ item.total }})
             </div>
           </div>
@@ -162,7 +165,7 @@ const totalPercentage = computed(() => {
       <!-- Activity by Type -->
       <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <div class="card p-6">
-          <h3 class="text-xl font-bold text-gray-900 dark:text-text-primary mb-4">
+          <h3 class="text-xl font-bold text-text-primary mb-4 font-display">
             Avis par type
           </h3>
           <div class="space-y-3">
@@ -171,7 +174,7 @@ const totalPercentage = computed(() => {
               :key="`review-${type}`"
               class="flex items-center justify-between"
             >
-              <span class="text-sm text-gray-700 dark:text-text-secondary">
+              <span class="text-sm text-text-secondary font-body">
                 {{ getMediaTypeLabel(type) }}
               </span>
               <div class="flex items-center gap-2">
@@ -180,17 +183,17 @@ const totalPercentage = computed(() => {
                   :class="getMediaTypeColor(type)"
                   :style="{ width: `${Math.min(count * 10, 100)}px` }"
                 ></div>
-                <span class="text-sm font-bold text-gray-900 dark:text-text-primary">{{ count }}</span>
+                <span class="text-sm font-bold text-text-primary font-display">{{ count }}</span>
               </div>
             </div>
-            <div v-if="Object.keys(statistics.reviews_by_type).length === 0" class="text-sm text-gray-500 dark:text-text-secondary italic">
+            <div v-if="Object.keys(statistics.reviews_by_type).length === 0" class="text-sm text-text-tertiary font-body italic">
               Aucun avis pour le moment
             </div>
           </div>
         </div>
 
         <div class="card p-6">
-          <h3 class="text-xl font-bold text-gray-900 dark:text-text-primary mb-4">
+          <h3 class="text-xl font-bold text-text-primary mb-4 font-display">
             Notes par type
           </h3>
           <div class="space-y-3">
@@ -200,17 +203,17 @@ const totalPercentage = computed(() => {
               class="space-y-1"
             >
               <div class="flex items-center justify-between">
-                <span class="text-sm font-medium text-gray-700 dark:text-text-secondary">
+                <span class="text-sm font-medium text-text-secondary font-body">
                   {{ getMediaTypeLabel(type) }}
                 </span>
-                <span class="text-sm font-bold text-gray-900 dark:text-text-primary">
+                <span class="text-sm font-bold text-text-primary font-display">
                   {{ data.average_score.toFixed(1) }}/10
                 </span>
               </div>
-              <div class="flex items-center justify-between text-xs text-gray-600 dark:text-text-secondary">
+              <div class="flex items-center justify-between text-xs text-text-secondary font-body">
                 <span>{{ data.count }} note(s)</span>
                 <div
-                  class="h-1.5 rounded-full bg-gray-200 dark:bg-bg-tertiary flex-1 mx-2 max-w-[100px]"
+                  class="h-1.5 rounded-full bg-bg-tertiary flex-1 mx-2 max-w-[100px]"
                 >
                   <div
                     class="h-full rounded-full"
@@ -220,7 +223,7 @@ const totalPercentage = computed(() => {
                 </div>
               </div>
             </div>
-            <div v-if="Object.keys(statistics.ratings_by_type).length === 0" class="text-sm text-gray-500 dark:text-text-secondary italic">
+            <div v-if="Object.keys(statistics.ratings_by_type).length === 0" class="text-sm text-text-tertiary font-body italic">
               Aucune note pour le moment
             </div>
           </div>
@@ -229,7 +232,7 @@ const totalPercentage = computed(() => {
 
       <!-- Top Rated Media -->
       <div v-if="statistics.top_rated.length > 0" class="card p-6">
-        <h3 class="text-xl font-bold text-gray-900 dark:text-text-primary mb-4">
+        <h3 class="text-xl font-bold text-text-primary mb-4 font-display">
           Mes coups de cœur (8+/10)
         </h3>
         <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
@@ -239,22 +242,22 @@ const totalPercentage = computed(() => {
             class="group"
           >
             <NuxtLink :to="`/media/${item.media_id}`" class="block">
-              <div class="relative overflow-hidden rounded-lg bg-gray-100 dark:bg-bg-tertiary">
+              <div class="relative overflow-hidden rounded-xl bg-bg-tertiary">
                 <img
                   v-if="item.cover_image"
                   :src="item.cover_image"
                   :alt="item.title"
                   class="aspect-[2/3] w-full object-cover transition-transform duration-300 group-hover:scale-105"
                 />
-                <div v-else class="aspect-[2/3] w-full flex items-center justify-center bg-gray-200 dark:bg-bg-tertiary">
+                <div v-else class="aspect-[2/3] w-full flex items-center justify-center bg-bg-tertiary">
                   <span class="text-2xl">📺</span>
                 </div>
-                <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                  <div class="absolute bottom-0 left-0 right-0 p-2">
-                    <p class="text-xs font-bold text-white truncate">{{ item.title }}</p>
+                <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div class="absolute bottom-0 left-0 right-0 p-3">
+                    <p class="text-xs font-bold text-white truncate font-display">{{ item.title }}</p>
                     <div class="flex items-center gap-1 mt-1">
-                      <span class="text-lg">⭐</span>
-                      <span class="text-sm font-bold text-yellow-400">{{ item.rating }}</span>
+                      <span class="text-sm">⭐</span>
+                      <span class="text-sm font-bold text-yellow-400 font-display">{{ item.rating }}</span>
                     </div>
                   </div>
                 </div>
@@ -268,7 +271,7 @@ const totalPercentage = computed(() => {
       <div class="flex justify-center gap-4">
         <NuxtLink
           to="/"
-          class="inline-block rounded-md bg-accent px-5 py-2.5 text-sm font-semibold text-white transition-all duration-200 ease-out hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-1 dark:focus:ring-offset-bg-secondary"
+          class="btn-primary px-6 py-3"
         >
           Retour à l'accueil
         </NuxtLink>

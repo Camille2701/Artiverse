@@ -2,11 +2,21 @@
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
-  modules: ['@nuxtjs/tailwindcss'],
+  modules: ['@nuxtjs/tailwindcss', '@nuxtjs/google-fonts'],
   css: ['~/assets/css/main.css'],
   tailwindcss: {
     cssPath: '~/assets/css/main.css',
     configPath: '~/tailwind.config.ts',
+  },
+  googleFonts: {
+    families: {
+      SpaceGrotesk: [300, 400, 500, 600, 700],
+      Outfit: [300, 400, 500, 600, 700],
+      Inter: [300, 400, 500, 600, 700],
+    },
+    display: 'swap',
+    prefetch: true,
+    preconnect: true,
   },
   vite: {
     server: {

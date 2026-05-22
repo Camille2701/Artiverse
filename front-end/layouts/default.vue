@@ -6,44 +6,104 @@ const handleLogout = () => {
     logout()
     router.push('/users/login')
 }
+
+// Enable dark mode by default
+onMounted(() => {
+  document.documentElement.classList.add('dark')
+})
 </script>
 
 <template>
+  <div class="flex flex-col min-h-screen bg-bg-primary noise">
 
-  <div class="flex flex-col min-h-screen bg-gray-50">
+    <header class="glass border-b border-border-color/50 sticky top-0 z-50">
+      <nav class="container mx-auto flex flex-col gap-4 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:px-6 lg:px-8">
+        <div class="flex items-center gap-3">
+          <NuxtLink to="/home" class="flex items-center gap-3 group">
+            <div class="relative h-11 w-11">
+              <div class="absolute inset-0 bg-gradient-to-br from-accent-movie via-accent-series to-accent-game rounded-xl blur-sm opacity-60 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div class="relative h-11 w-11 rounded-xl bg-gradient-to-br from-accent-movie via-accent-series to-accent-game flex items-center justify-center text-xl transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3 shadow-lg">
+                🎬
+              </div>
+            </div>
+            <h1 class="text-2xl font-display font-bold tracking-tight text-text-primary group-hover:gradient-text transition-all duration-300">
+              Artiverse
+            </h1>
+          </NuxtLink>
+        </div>
 
-    <header class="bg-zinc-900 text-white shadow-md">
-      <nav class="container mx-auto flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-6 lg:px-8">
-        <h1 class="text-xl font-bold tracking-tight sm:text-2xl"><NuxtLink to="/home">Artiverse</NuxtLink></h1>
+        <div class="flex items-center gap-2 sm:gap-6">
+          <div class="group">
+            <NuxtLink to="/" class="nav-link text-sm px-3 py-2 rounded-lg hover:bg-bg-secondary/50 transition-all duration-300">
+              Manage
+            </NuxtLink>
+          </div>
 
-        <div class="flex items-center gap-x-4 text-sm sm:text-base">
-          <NuxtLink to="/" class="transition hover:text-accent-light">Manage</NuxtLink>
-
-          <button v-if="isAuthenticated" @click="handleLogout" class="transition hover:text-accent-light">Se déconnecter</button>
+          <template v-if="isAuthenticated">
+            <div class="group">
+              <NuxtLink to="/users/profile" class="nav-link text-sm px-3 py-2 rounded-lg hover:bg-bg-secondary/50 transition-all duration-300 flex items-center gap-2">
+                <span>👤</span>
+                <span class="hidden sm:inline">Profil</span>
+              </NuxtLink>
+            </div>
+            <div class="group">
+              <button
+                @click="handleLogout"
+                class="nav-link text-sm px-3 py-2 rounded-lg hover:bg-bg-secondary/50 transition-all duration-300 flex items-center gap-2"
+              >
+                <span>🚪</span>
+                <span class="hidden sm:inline">Se déconnecter</span>
+              </button>
+            </div>
+          </template>
           <template v-else>
-            <NuxtLink to="/users/login" class="transition hover:text-accent-light">Se connecter</NuxtLink>
+            <div class="group">
+              <NuxtLink to="/users/login" class="nav-link text-sm px-3 py-2 rounded-lg hover:bg-bg-secondary/50 transition-all duration-300">
+                Se connecter
+              </NuxtLink>
+            </div>
             <NuxtLink
               to="/users/new"
-              class="inline-flex items-center rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-white transition-all duration-200 ease-out hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-1"
+              class="btn-primary text-sm px-5 py-2.5"
             >
               Créer un compte
             </NuxtLink>
           </template>
-          <NuxtLink v-if="isAuthenticated" to="/users/profile" class="transition hover:text-accent-light">Profil</NuxtLink>
         </div>
-
       </nav>
     </header>
-    
-    <div class="container mx-auto px-4 py-8 flex-grow flex flex-col md:flex-row gap-8">
+
+    <div class="container mx-auto px-4 py-8 flex-grow">
       <!-- Main Content -->
-      <main class="w-full md:w-3/4">
+      <main class="max-w-7xl mx-auto">
         <slot />
       </main>
     </div>
-    
-    <footer class="bg-gray-900 text-white py-6 text-center text-sm mt-auto">
-      <p>&copy; {{ new Date().getFullYear() }} Artiverse. All rights reserved.</p>
+
+    <footer class="glass border-t border-border-color/50 mt-auto">
+      <div class="container mx-auto px-4 py-8">
+        <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+          <div class="flex items-center gap-3">
+            <div class="h-8 w-8 rounded-lg bg-gradient-to-br from-accent-movie via-accent-series to-accent-game flex items-center justify-center text-sm">
+              🎬
+            </div>
+            <p class="text-text-secondary text-sm font-body">
+              &copy; {{ new Date().getFullYear() }} Artiverse. Tous droits réservés.
+            </p>
+          </div>
+          <div class="flex gap-6">
+            <a href="#" class="text-text-secondary hover:text-text-primary transition-colors text-sm font-body hover:underline underline-offset-4">
+              À propos
+            </a>
+            <a href="#" class="text-text-secondary hover:text-text-primary transition-colors text-sm font-body hover:underline underline-offset-4">
+              Confidentialité
+            </a>
+            <a href="#" class="text-text-secondary hover:text-text-primary transition-colors text-sm font-body hover:underline underline-offset-4">
+              Conditions
+            </a>
+          </div>
+        </div>
+      </div>
     </footer>
   </div>
 </template>

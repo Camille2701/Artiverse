@@ -1,45 +1,93 @@
 <template>
-  <div class="flex h-full flex-col overflow-hidden rounded-lg border border-gray-200 bg-white p-7 shadow-sm transition-all duration-300 ease-out hover:-translate-y-1 hover:border-accent-light hover:shadow-xl hover:ring-2 hover:ring-accent-light">
-    <div class="flex justify-between items-start mb-4">
-      <h3 class="font-bold text-xl text-gray-900 line-clamp-2" :title="media.title">
+  <div
+    class="card card-hover h-full flex flex-col overflow-hidden group"
+    :class="mediaCardClasses"
+  >
+    <div class="relative">
+      <!-- Media type indicator -->
+      <div class="absolute top-3 left-3 z-10">
+        <span
+          class="badge px-3 py-1.5 text-xs font-semibold shadow-lg"
+          :class="mediaTypeBadgeClass"
+        >
+          {{ mediaTypeLabel }}
+        </span>
+      </div>
+
+      <!-- Media cover image placeholder -->
+      <div class="h-52 bg-gradient-to-br from-bg-tertiary to-bg-secondary flex items-center justify-center relative overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-t from-bg-secondary/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+        <div v-if="media.coverImage" class="w-full h-full">
+          <img
+            :src="media.coverImage"
+            :alt="media.title"
+            class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+          />
+        </div>
+        <div v-else class="text-center relative z-10">
+          <span class="text-5xl block mb-2 transition-transform duration-300 group-hover:scale-110">{{ mediaTypeIcon }}</span>
+          <p class="text-text-tertiary text-sm font-medium">Image non disponible</p>
+        </div>
+      </div>
+
+      <!-- Rating badge -->
+      <div v-if="media.rating" class="absolute top-3 right-3 z-10">
+        <div class="glass rounded-lg px-3 py-1.5 flex items-center gap-1.5 shadow-lg backdrop-blur-md">
+          <span class="text-yellow-400 text-sm">★</span>
+          <span class="text-text-primary font-bold text-sm">{{ media.rating }}/10</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="p-5 flex flex-col flex-grow relative">
+      <!-- Decorative accent line -->
+      <div class="absolute top-0 left-5 right-5 h-0.5 bg-gradient-to-r from-transparent via-current to-transparent opacity-0 group-hover:opacity-30 transition-opacity duration-300" :class="mediaCardClasses"></div>
+
+      <!-- Title -->
+      <h3 class="font-display font-bold text-xl text-text-primary mb-3 line-clamp-2 group-hover:text-white transition-colors" :title="media.title">
         {{ media.title }}
       </h3>
-      <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium" :class="badgeClass(media.type)">
-        {{ media.type }}
-      </span>
-    </div>
-    
-    <div class="text-sm text-gray-500 mb-4 space-y-1">
-      <div class="flex items-center">
-        <span class="font-medium mr-2">Note:</span>
-        <span class="text-yellow-500 font-bold">{{ media.rating }}/10</span>
-      </div>
-      <div class="flex items-center">
-        <span class="font-medium mr-2">Sortie:</span>
-        <span>{{ formatDate(media.releaseDate) }}</span>
-      </div>
-    </div>
 
-    <p class="text-gray-600 text-sm mb-6 flex-grow line-clamp-3" :title="media.description">
-      {{ media.description }}
-    </p>
+      <!-- Meta information -->
+      <div class="space-y-2 mb-4">
+        <div v-if="media.releaseDate" class="flex items-center text-sm">
+          <span class="text-text-tertiary mr-2 text-base">📅</span>
+          <span class="text-text-secondary font-medium">{{ formatDate(media.releaseDate) }}</span>
+        </div>
+        <div v-if="media.genre" class="flex items-center text-sm">
+          <span class="text-text-tertiary mr-2 text-base">🏷️</span>
+          <span class="text-text-secondary font-medium">{{ media.genre }}</span>
+        </div>
+      </div>
 
-    <div class="mt-auto pt-4 border-t border-gray-100 flex items-center justify-between gap-4">
-      <slot name="actions" />
-      
-      <div class="flex space-x-2 ml-auto">
-        <button 
-          @click="$emit('select', media)" 
-          class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500 transition"
-        >
-          Détails
-        </button>
-        <button 
-          @click="$emit('delete', media.id)" 
-          class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition"
-        >
-          Supprimer
-        </button>
+      <!-- Description -->
+      <p
+        v-if="media.description"
+        class="text-text-secondary text-sm mb-4 flex-grow line-clamp-3 font-body leading-relaxed"
+        :title="media.description"
+      >
+        {{ media.description }}
+      </p>
+
+      <!-- Actions -->
+      <div class="pt-4 border-t border-border-color flex items-center gap-3">
+        <slot name="actions" />
+
+        <div class="flex gap-2 ml-auto">
+          <button
+            @click="$emit('select', media)"
+            class="btn-primary text-xs px-4 py-2.5 font-semibold"
+          >
+            Détails
+          </button>
+          <button
+            @click="$emit('delete', media.id)"
+            class="px-3 py-2.5 rounded-xl text-text-tertiary hover:text-red-400 hover:bg-red-400/10 transition-all duration-300 hover:scale-105"
+            title="Supprimer"
+          >
+            🗑️
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -58,27 +106,87 @@ const emit = defineEmits<{
 }>();
 
 function formatDate(dateStr: string) {
-    if (!dateStr) return '';
-    return new Date(dateStr).toLocaleDateString('fr-FR');
+  if (!dateStr) return '';
+  return new Date(dateStr).toLocaleDateString('fr-FR', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
 }
 
-function badgeClass(type: MediaType) {
-  if (type === MediaType.Movie) {
-    return 'bg-purple-100 text-purple-800'
+function getMediaTypeClass(type: MediaType) {
+  switch (type) {
+    case MediaType.Movie:
+      return 'media-movie';
+    case MediaType.Serie:
+      return 'media-series';
+    case MediaType.Game:
+      return 'media-game';
+    case MediaType.Book:
+      return 'media-book';
+    default:
+      return '';
   }
-
-  if (type === MediaType.Game) {
-    return 'bg-emerald-100 text-emerald-800'
-  }
-
-  if (type === MediaType.Serie) {
-    return 'bg-sky-100 text-sky-800'
-  }
-
-  if (type === MediaType.Book) {
-    return 'bg-amber-100 text-amber-800'
-  }
-
-  return 'bg-slate-100 text-slate-800'
 }
+
+function getMediaTypeBadgeClass(type: MediaType) {
+  switch (type) {
+    case MediaType.Movie:
+      return 'bg-gradient-to-r from-accent-movie to-[#ff5c6b] text-white border border-white/20';
+    case MediaType.Serie:
+      return 'bg-gradient-to-r from-accent-series to-[#aa5fec] text-white border border-white/20';
+    case MediaType.Game:
+      return 'bg-gradient-to-r from-accent-game to-[#0ee0e1] text-white border border-white/20';
+    case MediaType.Book:
+      return 'bg-gradient-to-r from-accent-book to-[#f4d97e] text-white border border-white/20';
+    default:
+      return 'bg-bg-tertiary text-text-secondary border border-border-color';
+  }
+}
+
+function getMediaTypeLabel(type: MediaType) {
+  switch (type) {
+    case MediaType.Movie:
+      return '🎬 Film';
+    case MediaType.Serie:
+      return '📺 Série';
+    case MediaType.Game:
+      return '🎮 Jeu';
+    case MediaType.Book:
+      return '📚 Livre';
+    default:
+      return type;
+  }
+}
+
+function getMediaTypeIcon(type: MediaType) {
+  switch (type) {
+    case MediaType.Movie:
+      return '🎬';
+    case MediaType.Serie:
+      return '📺';
+    case MediaType.Game:
+      return '🎮';
+    case MediaType.Book:
+      return '📚';
+    default:
+      return '📄';
+  }
+}
+
+const mediaCardClasses = computed(() => {
+  return getMediaTypeClass(props.media.type);
+});
+
+const mediaTypeBadgeClass = computed(() => {
+  return getMediaTypeBadgeClass(props.media.type);
+});
+
+const mediaTypeLabel = computed(() => {
+  return getMediaTypeLabel(props.media.type);
+});
+
+const mediaTypeIcon = computed(() => {
+  return getMediaTypeIcon(props.media.type);
+});
 </script>

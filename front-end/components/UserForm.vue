@@ -36,7 +36,7 @@ const errors = reactive({
 })
 
 const baseInputClass =
-  'mt-1 block w-full rounded-md border px-3 py-2 text-sm transition-all duration-200 ease-out focus:outline-none focus:ring-2'
+  'mt-1 block w-full rounded-lg border-2 px-4 py-3 text-sm transition-all duration-200 ease-out focus:outline-none focus:ring-0 focus:shadow-glow'
 
 function validateField(field: 'username' | 'email' | 'password' | 'bio') {
   if (field === 'username') {
@@ -66,8 +66,9 @@ function inputClass(field: 'username' | 'email' | 'password' | 'bio') {
   return [
     baseInputClass,
     hasError
-      ? 'border-red-500 hover:border-red-600 focus:border-red-500 focus:ring-red-500 active:border-red-600 active:ring-red-500/70'
-      : 'border-slate-300 hover:border-slate-400 focus:border-blue-500 focus:ring-blue-500 active:border-blue-600 active:ring-blue-500/70'
+      ? 'bg-red-950/30 border-red-500 text-red-100 placeholder-red-300/50 focus:border-red-400'
+      : 'bg-bg-tertiary/50 border-border-color text-text-primary placeholder-text-tertiary hover:border-border-color-light focus:border-accent',
+    hasError ? 'shadow-[0_0_15px_rgba(239,68,68,0.3)]' : ''
   ]
 }
 
@@ -117,45 +118,45 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <form class="space-y-4" novalidate @submit.prevent="handleSubmit">
-    <p class="text-sm text-slate-600">Crée ton compte en complétant les informations ci-dessous.</p>
+  <form class="space-y-5" novalidate @submit.prevent="handleSubmit">
+    <p class="text-sm text-text-secondary font-body">Crée ton compte en complétant les informations ci-dessous.</p>
     <div>
-      <label class="text-sm font-medium text-slate-700">Nom d'utilisateur</label>
+      <label class="block text-sm font-medium text-text-primary mb-2 font-display">Nom d'utilisateur</label>
       <input
         v-model.trim="form.username"
         :class="inputClass('username')"
-        placeholder="Nom d'utilisateur"
+        placeholder="tonpseudo"
         required
         @blur="markTouchedAndValidate('username')"
       >
-      <p v-if="touched.username && errors.username" class="mt-1 text-xs text-red-600">{{ errors.username }}</p>
+      <p v-if="touched.username && errors.username" class="mt-2 text-xs text-red-400 font-medium">{{ errors.username }}</p>
     </div>
     <div>
-      <label class="text-sm font-medium text-slate-700">Email</label>
+      <label class="block text-sm font-medium text-text-primary mb-2 font-display">Email</label>
       <input
         v-model.lazy="form.email"
         :class="inputClass('email')"
         type="email"
-        placeholder="Email"
+        placeholder="ton@email.com"
         required
         @blur="markTouchedAndValidate('email')"
       >
-      <p v-if="touched.email && errors.email" class="mt-1 text-xs text-red-600">{{ errors.email }}</p>
+      <p v-if="touched.email && errors.email" class="mt-2 text-xs text-red-400 font-medium">{{ errors.email }}</p>
     </div>
     <div>
-      <label class="text-sm font-medium text-slate-700">Mot de passe</label>
+      <label class="block text-sm font-medium text-text-primary mb-2 font-display">Mot de passe</label>
       <input
         v-model="form.password"
         :class="inputClass('password')"
         type="password"
-        placeholder="Mot de passe (8 caractères minimum)"
+        placeholder="•••••••• (8 caractères minimum)"
         required
         @blur="markTouchedAndValidate('password')"
       >
-      <p v-if="touched.password && errors.password" class="mt-1 text-xs text-red-600">{{ errors.password }}</p>
+      <p v-if="touched.password && errors.password" class="mt-2 text-xs text-red-400 font-medium">{{ errors.password }}</p>
     </div>
     <div>
-      <label class="text-sm font-medium text-slate-700">Biographie (optionnel)</label>
+      <label class="block text-sm font-medium text-text-primary mb-2 font-display">Biographie (optionnel)</label>
       <textarea
         v-model="form.bio"
         :class="inputClass('bio')"
@@ -163,15 +164,15 @@ async function handleSubmit() {
         placeholder="Parle-nous un peu de toi..."
         @blur="markTouchedAndValidate('bio')"
       ></textarea>
-      <p v-if="touched.bio && errors.bio" class="mt-1 text-xs text-red-600">{{ errors.bio }}</p>
+      <p v-if="touched.bio && errors.bio" class="mt-2 text-xs text-red-400 font-medium">{{ errors.bio }}</p>
     </div>
     <button
-      class="btn-accent"
+      class="btn-primary w-full py-3 text-base font-display font-semibold"
       type="submit"
       :disabled="isLoading"
     >
       {{ isLoading ? 'Inscription...' : 'S\'inscrire' }}
     </button>
-    <p v-if="errorMessage" class="text-sm text-red-600">{{ errorMessage }}</p>
+    <p v-if="errorMessage" class="text-sm text-red-400 font-medium bg-red-950/50 border border-red-500/30 rounded-lg p-4">{{ errorMessage }}</p>
   </form>
 </template>

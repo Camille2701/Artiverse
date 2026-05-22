@@ -158,10 +158,10 @@ const pageNumbers = computed(() => {
 <template>
   <div class="mx-auto my-4 w-full max-w-7xl px-4 py-4 sm:my-6 sm:px-6 sm:py-6 lg:my-8 lg:px-8 lg:py-8">
     <div class="mb-8">
-      <h1 class="text-3xl font-extrabold text-gray-900 dark:text-text-primary sm:text-4xl">
-        Recherche avancée
+      <h1 class="text-3xl sm:text-4xl font-display font-bold text-text-primary">
+        <span class="gradient-text">Recherche</span> avancée
       </h1>
-      <p class="mt-2 text-sm text-gray-600 dark:text-text-secondary">
+      <p class="mt-2 text-sm text-text-secondary font-body">
         Trouvez exactement ce que vous cherchez
       </p>
     </div>
@@ -170,20 +170,20 @@ const pageNumbers = computed(() => {
     <EnhancedSearch @search="handleSearch" />
 
     <!-- Loading state -->
-    <div v-if="loading" class="flex items-center justify-center py-20">
-      <div class="h-12 w-12 animate-spin rounded-full border-b-2 border-accent"></div>
-      <p class="ml-3 text-gray-600 dark:text-text-secondary">Recherche en cours...</p>
+    <div v-if="loading" class="flex flex-col items-center justify-center py-20">
+      <div class="spinner !h-12 !w-12 !border-4"></div>
+      <p class="mt-4 text-text-secondary font-body">Recherche en cours...</p>
     </div>
 
     <!-- Error state -->
-    <div v-else-if="error" class="mt-8 rounded-md bg-red-50 p-6 dark:bg-red-900/20 dark:border dark:border-red-800">
+    <div v-else-if="error" class="mt-8 glass rounded-xl p-6 border border-red-500/30">
       <div class="flex items-start gap-4">
-        <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/40">
-          <span class="text-red-600 dark:text-red-400">⚠️</span>
+        <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-red-500/20">
+          <span class="text-red-400 text-lg">⚠️</span>
         </div>
         <div class="flex-1">
-          <h3 class="text-lg font-medium text-red-800 dark:text-red-400">Erreur</h3>
-          <p class="mt-2 text-sm text-red-700 dark:text-red-300">{{ error }}</p>
+          <h3 class="text-lg font-semibold text-red-400">Erreur</h3>
+          <p class="mt-2 text-sm text-red-300">{{ error }}</p>
         </div>
       </div>
     </div>
@@ -193,10 +193,10 @@ const pageNumbers = computed(() => {
       <!-- Results header -->
       <div class="mb-6 flex items-center justify-between">
         <div>
-          <p class="text-sm text-gray-600 dark:text-text-secondary">
-            <span class="font-semibold text-gray-900 dark:text-text-primary">{{ totalResults }}</span>
-            résultat(s) trouvés
-            <span v-if="query">pour "{{ query }}"</span>
+          <p class="text-sm text-text-secondary font-body">
+            <span class="font-semibold text-text-primary">{{ totalResults }}</span>
+            résultat{{ totalResults > 1 ? 's' : '' }} trouvé{{ totalResults > 1 ? 's' : '' }}
+            <span v-if="query" class="text-text-tertiary">pour "<span class="text-text-primary">"{{ query }}"</span>"</span>
           </p>
         </div>
       </div>
@@ -211,13 +211,13 @@ const pageNumbers = computed(() => {
       </div>
 
       <!-- Pagination -->
-      <div v-if="totalPages > 1" class="mt-8 flex items-center justify-center gap-2">
+      <div v-if="totalPages > 1" class="mt-10 flex items-center justify-center gap-2">
         <button
           @click="prevPage"
           :disabled="!hasPrevPage"
-          class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-all duration-200 ease-out hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:border-border-color dark:bg-bg-secondary dark:text-text-secondary dark:hover:bg-bg-tertiary"
+          class="px-4 py-2.5 rounded-xl border-2 border-border-color bg-bg-secondary text-text-secondary text-sm font-semibold font-display transition-all duration-200 hover:border-border-color-light hover:bg-bg-tertiary hover:text-text-primary disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-border-color disabled:hover:bg-bg-secondary disabled:hover:text-text-secondary"
         >
-          Précédent
+          ← Précédent
         </button>
 
         <div class="flex gap-1">
@@ -226,12 +226,11 @@ const pageNumbers = computed(() => {
             :key="page"
             @click="typeof page === 'number' ? goToPage(page) : null"
             :disabled="page === '...'"
-            class="w-10 h-10 rounded-md text-sm font-medium transition-all duration-200 ease-out"
+            class="w-10 h-10 rounded-xl text-sm font-semibold font-display transition-all duration-200"
             :class="{
-              'bg-accent text-white': page === currentPage,
-              'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50': page !== currentPage && page !== '...',
-              'cursor-default': page === '...',
-              'dark:border-border-color dark:bg-bg-secondary dark:text-text-secondary dark:hover:bg-bg-tertiary': page !== currentPage && page !== '...'
+              'bg-accent text-white border-2 border-accent': page === currentPage,
+              'border-2 border-border-color bg-bg-secondary text-text-secondary hover:border-border-color-light hover:bg-bg-tertiary hover:text-text-primary': page !== currentPage && page !== '...',
+              'cursor-default opacity-50': page === '...'
             }"
           >
             {{ page }}
@@ -241,36 +240,25 @@ const pageNumbers = computed(() => {
         <button
           @click="nextPage"
           :disabled="!hasNextPage"
-          class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-all duration-200 ease-out hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:border-border-color dark:bg-bg-secondary dark:text-text-secondary dark:hover:bg-bg-tertiary"
+          class="px-4 py-2.5 rounded-xl border-2 border-border-color bg-bg-secondary text-text-secondary text-sm font-semibold font-display transition-all duration-200 hover:border-border-color-light hover:bg-bg-tertiary hover:text-text-primary disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-border-color disabled:hover:bg-bg-secondary disabled:hover:text-text-secondary"
         >
-          Suivant
+          Suivant →
         </button>
       </div>
     </div>
 
     <!-- No results state -->
     <div v-else-if="!loading && !error" class="mt-8 text-center">
-      <div class="mx-auto max-w-md">
+      <div class="mx-auto max-w-md glass rounded-2xl p-10 border border-border-color">
         <div class="mb-4">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="mx-auto h-16 w-16 text-gray-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-            />
-          </svg>
+          <div class="mx-auto h-20 w-20 rounded-full bg-bg-tertiary/50 flex items-center justify-center">
+            <span class="text-4xl">🔍</span>
+          </div>
         </div>
-        <h3 class="text-lg font-medium text-gray-900 dark:text-text-primary">
+        <h3 class="text-xl font-semibold text-text-primary font-display mb-2">
           Aucun résultat trouvé
         </h3>
-        <p class="mt-2 text-sm text-gray-600 dark:text-text-secondary">
+        <p class="text-sm text-text-secondary font-body">
           Essayez de modifier votre recherche ou vos filtres
         </p>
       </div>
@@ -280,9 +268,9 @@ const pageNumbers = computed(() => {
     <div class="mt-12 text-center">
       <NuxtLink
         to="/"
-        class="inline-flex items-center text-sm font-medium text-accent hover:text-accent-hover transition-colors"
+        class="inline-flex items-center text-sm font-semibold text-accent hover:text-accent-hover transition-colors gap-2 group"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition-transform group-hover:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
         </svg>
         Retour à l'accueil

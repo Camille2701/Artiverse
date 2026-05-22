@@ -1,6 +1,6 @@
 <script setup lang="ts">
 useHead({
-  title: "Artiverse",
+  title: "Artiverse - Inscription",
   meta: [
     { name: "Page de création d'utilisateur", content: "Création d'un utilisateur"}
   ]
@@ -8,12 +8,19 @@ useHead({
 </script>
 
 <template>
-  <div class="mx-auto w-full max-w-md space-y-4 px-4 py-6 sm:space-y-5 sm:px-6 sm:py-8 lg:max-w-lg lg:space-y-6 lg:px-0">
-    <h1 class="text-2xl font-semibold text-slate-900 sm:text-3xl">M'inscrire</h1>
+  <div class="mx-auto w-full max-w-md space-y-6 px-4 py-8 sm:space-y-8 sm:px-6 sm:py-12 lg:max-w-lg lg:px-0">
+    <div class="text-center">
+      <h1 class="text-3xl sm:text-4xl font-display font-bold text-text-primary mb-2">
+        Rejoins Artiverse
+      </h1>
+      <p class="text-text-secondary font-body">Crée ton compte et commence à explorer</p>
+    </div>
     <UserForm />
-    <p class="text-sm text-slate-600 sm:text-base">
+    <p class="text-center text-text-secondary font-body text-sm sm:text-base">
       Déjà un compte ?
-      <NuxtLink to="/users/login" class="text-link-accent">Se connecter</NuxtLink>
+      <NuxtLink to="/users/login" class="text-accent hover:text-accent-hover font-semibold transition-colors underline underline-offset-4 decoration-2">
+        Se connecter
+      </NuxtLink>
     </p>
   </div>
 </template>
