@@ -21,8 +21,8 @@ const { isDark } = useTheme();
 
 const logoSrc = computed(() => {
   return isDark.value
-    ? '/assets/logos/banner_white_bg.png'
-    : '/assets/logos/banner.png';
+    ? '/logos/small_white_bg.png'
+    : '/logos/small.png';
 });
 
 const logoClass = computed(() => {

@@ -1,50 +1,77 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
 from sqlalchemy.orm import Session
+from typing import Optional
 
 from app.db import get_db
-from app.models import User
+from app.models import User, Media
 from app.schemas import MediaResponse, MediaCreate, MediaUpdate
 from app.services import MediaService
+from app.services.storage_service import StorageService
 from app.dependencies.auth import get_current_user
 
 router = APIRouter(prefix="/media", tags=["media"])
 
 
 @router.post("")
-def create_media(
-    media_create: dict,
+async def create_media(
+    media_type: str = Form(...),
+    title: str = Form(...),
+    original_title: Optional[str] = Form(None),
+    synopsis: Optional[str] = Form(None),
+    release_date: Optional[str] = Form(None),
+    cover_image: Optional[UploadFile] = File(None),
+    banner_image: Optional[UploadFile] = File(None),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Create new media (admin only for MVP) - Frontend compatible format."""
-    # Convert frontend format to backend format
-    backend_media_create = {
-        "media_type": media_create.get("type", "movie"),
-        "title": media_create.get("title", ""),
-        "original_title": media_create.get("original_title"),
-        "synopsis": media_create.get("description", ""),
-        "release_date": media_create.get("releaseDate"),
-        "cover_image": media_create.get("image"),
-        "banner_image": media_create.get("banner_image")
-    }
-
-    # Convert to MediaCreate schema
-    media_schema = MediaCreate(**backend_media_create)
-    media = MediaService.create_media(db, media_schema)
-
-    # Return in frontend format
-    return {
-        "success": True,
-        "media": {
-            "id": media.id,
-            "title": media.title,
-            "type": media.media_type.value,
-            "description": media.synopsis,
-            "rating": float(media.average_rating),
-            "releaseDate": media.release_date.isoformat() if media.release_date else None,
-            "image": media.cover_image
+    """Create new media with image uploads."""
+    try:
+        # Upload cover image if provided
+        cover_filename = None
+        if cover_image:
+            cover_filename = await StorageService.upload_image(cover_image, "covers")
+        
+        # Upload banner image if provided
+        banner_filename = None
+        if banner_image:
+            banner_filename = await StorageService.upload_image(banner_image, "banners")
+        
+        # Create media
+        media_create = MediaCreate(
+            media_type=media_type,
+            title=title,
+            original_title=original_title,
+            synopsis=synopsis,
+            release_date=release_date
+        )
+        
+        media = MediaService.create_media(
+            db, 
+            media_create,
+            cover_image=cover_filename,
+            banner_image=banner_filename
+        )
+        
+        return {
+            "success": True,
+            "media": {
+                "id": media.id,
+                "title": media.title,
+                "media_type": media.media_type.value,
+                "description": media.synopsis,
+                "rating": float(media.average_rating),
+                "releaseDate": media.release_date.isoformat() if media.release_date else None,
+                "cover_image": media.cover_image
+            }
         }
-    }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to create media: {str(e)}"
+        )
 
 
 @router.get("")

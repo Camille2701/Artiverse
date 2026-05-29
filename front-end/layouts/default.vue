@@ -17,8 +17,8 @@ onMounted(() => {
 
 const logoSrc = computed(() => {
   return isDark.value
-    ? '/assets/logos/banner_white_bg.png'
-    : '/assets/logos/banner.png';
+    ? '/logos/small_white_bg.png'
+    : '/logos/small.png';
 });
 </script>
 
@@ -30,15 +30,12 @@ const logoSrc = computed(() => {
         <div class="flex items-center gap-3">
           <NuxtLink to="/home" class="flex items-center gap-3 group">
             <div class="relative h-11 w-11">
-              <div class="absolute inset-0 bg-gradient-to-br from-accent-movie via-accent-series to-accent-game rounded-xl blur-sm opacity-60 group-hover:opacity-100 transition-opacity duration-300"></div>
-              <div class="relative h-11 w-11 rounded-xl bg-gradient-to-br from-accent-movie via-accent-series to-accent-game flex items-center justify-center transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3 shadow-lg">
                 <img
                   :src="logoSrc"
                   alt="Artiverse Logo"
                   class="h-8 w-8 object-contain"
                 />
               </div>
-            </div>
             <h1 class="text-2xl font-display font-bold tracking-tight text-text-primary group-hover:gradient-text transition-all duration-300">
               Artiverse
             </h1>

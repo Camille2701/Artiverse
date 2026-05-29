@@ -28,6 +28,14 @@ wheels/
 .idea/
 *.swp
 *.swo
+
+# Environment
+.env
+.env.local
+
+# Uploads and static files
+uploads/
+uploads/**/*
 *~
 
 # Environment

@@ -47,7 +47,7 @@ class MediaService:
     """Service for media-related operations."""
     
     @staticmethod
-    def create_media(db: Session, media_create: MediaCreate) -> Media:
+    def create_media(db: Session, media_create: MediaCreate, cover_image: str = None, banner_image: str = None) -> Media:
         """Create a new media."""
         db_media = Media(
             media_type=media_create.media_type,
@@ -55,8 +55,8 @@ class MediaService:
             original_title=media_create.original_title,
             synopsis=media_create.synopsis,
             release_date=media_create.release_date,
-            cover_image=media_create.cover_image,
-            banner_image=media_create.banner_image
+            cover_image=cover_image,
+            banner_image=banner_image
         )
         db.add(db_media)
         db.commit()
