@@ -9,9 +9,6 @@ from app.api import router
 from app.db import engine
 from app.db.base import Base
 
-# Create tables
-Base.metadata.create_all(bind=engine)
-
 app = FastAPI(
     title=settings.PROJECT_NAME,
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
@@ -48,6 +45,12 @@ async def http_exception_handler(request, exc):
 
 # Include routers
 app.include_router(router)
+
+
+@app.on_event("startup")
+def on_startup():
+    """Create database tables on application startup."""
+    Base.metadata.create_all(bind=engine)
 
 
 # Health check endpoints

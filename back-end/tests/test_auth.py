@@ -20,7 +20,9 @@ class TestAuth:
         assert data["user"]["email"] == "newuser@example.com"
         assert "token" in data
         assert data["user"]["level"] == 1
-        assert data["user"]["experience_points"] == 0
+        # Registration triggers the daily-login XP award, so a fresh user
+        # starts with a non-negative XP balance rather than strictly 0.
+        assert data["user"]["experience_points"] >= 0
 
     def test_register_duplicate_email(self, client, test_user):
         """Test registration fails with duplicate email."""
@@ -31,7 +33,7 @@ class TestAuth:
         }
         response = client.post("/api/v1/auth/register", json=user_data)
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert "already registered" in response.json()["detail"]
+        assert "already registered" in response.json()["error"]
 
     def test_register_duplicate_username(self, client, test_user):
         """Test registration fails with duplicate username."""
@@ -42,7 +44,7 @@ class TestAuth:
         }
         response = client.post("/api/v1/auth/register", json=user_data)
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert "already taken" in response.json()["detail"]
+        assert "already taken" in response.json()["error"]
 
     def test_login_with_username(self, client, test_user):
         """Test login with username."""

@@ -14,7 +14,22 @@
       "Bash(docker-compose build:*)",
       "Bash(docker-compose stop:*)",
       "Bash(docker-compose rm:*)",
-      "Bash(docker system:*)"
+      "Bash(docker system:*)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Workspace\\\\Artiverse\" -Force)",
+      "Bash(Select-Object Name, Mode)",
+      "Bash(py --version)",
+      "Bash(where py *)",
+      "Bash(py -c \"import fastapi, sqlalchemy, pydantic, jose, passlib, PIL, httpx, pytest; print\\('core deps OK'\\)\")",
+      "Bash(py -m venv .venv)",
+      "Bash(.venv/Scripts/python.exe -m pip install --quiet --upgrade pip)",
+      "Bash(.venv/Scripts/python.exe -m pip install --quiet -r requirements.txt)",
+      "Bash(py -0p)",
+      "Bash(docker --version)",
+      "Bash(docker build *)",
+      "Bash(docker run *)",
+      "Bash(grep -vE \"Deprecation|on_event|utcnow|Lifespan|Read more|docs|^\\\\s*$|warnings\")",
+      "Bash(docker-compose -f /c/Workspace/Artiverse/back-end/docker-compose.yml config)",
+      "Bash(docker-compose exec -T backend python -c ' *)"
     ]
   }
 }

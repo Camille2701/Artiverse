@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from typing import Optional
 
 from app.db import get_db
 from app.models import User
@@ -48,13 +49,23 @@ def get_media_ratings(
     avg_score = db.query(func.avg(Rating.score)).filter(
         Rating.media_id == media_id
     ).scalar()
-    
+
     return {
         "media_id": media_id,
-        "ratings": ratings,
-        "average_score": avg_score or 0.0,
+        "ratings": [RatingResponse.model_validate(r).model_dump(mode="json") for r in ratings],
+        "average_score": float(avg_score) if avg_score is not None else 0.0,
         "count": len(ratings)
     }
+
+
+@router.get("/media/{media_id}/me", response_model=Optional[RatingResponse])
+def get_my_rating_for_media(
+    media_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get the current user's rating for a media (null if not rated)."""
+    return RatingService.get_rating(db, current_user.id, media_id)
 
 
 @router.get("/{rating_id}", response_model=RatingResponse)

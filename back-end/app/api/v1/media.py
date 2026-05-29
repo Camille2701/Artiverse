@@ -12,6 +12,19 @@ from app.dependencies.auth import get_current_user
 router = APIRouter(prefix="/media", tags=["media"])
 
 
+def _media_to_frontend(media: Media) -> dict:
+    """Serialize a Media ORM object into the frontend-compatible shape."""
+    return {
+        "id": media.id,
+        "title": media.title,
+        "type": media.media_type.value,
+        "description": media.synopsis,
+        "rating": float(media.average_rating),
+        "releaseDate": media.release_date.isoformat() if media.release_date else None,
+        "image": media.cover_image,
+    }
+
+
 @router.post("")
 async def create_media(
     media_type: str = Form(...),
@@ -83,22 +96,9 @@ def list_media(
     """Get all media with pagination - Frontend compatible format."""
     from app.models import Media
     media_list = db.query(Media).offset(skip).limit(limit).all()
-    total = db.query(Media).count()
 
     # Transform to frontend compatible format
-    frontend_media = []
-    for media in media_list:
-        frontend_media.append({
-            "id": media.id,
-            "title": media.title,
-            "type": media.media_type.value,
-            "description": media.synopsis,
-            "rating": float(media.average_rating),
-            "releaseDate": media.release_date.isoformat() if media.release_date else None,
-            "image": media.cover_image
-        })
-
-    return frontend_media
+    return [_media_to_frontend(media) for media in media_list]
 
 
 @router.get("/search", response_model=dict)
@@ -165,7 +165,7 @@ def search_media(
     )
 
     return {
-        "items": items,
+        "items": [_media_to_frontend(m) for m in items],
         "total": total,
         "skip": skip,
         "limit": limit,
@@ -191,9 +191,9 @@ def get_trending(
     from app.models import Media
     media_list = MediaService.get_trending_media(db, skip, limit)
     total = db.query(Media).count()
-    
+
     return {
-        "items": media_list,
+        "items": [_media_to_frontend(m) for m in media_list],
         "total": total,
         "skip": skip,
         "limit": limit
@@ -233,7 +233,25 @@ def update_media(
     update_data = media_update.dict(exclude_unset=True)
     for field, value in update_data.items():
         setattr(media, field, value)
-    
+
     db.commit()
     db.refresh(media)
     return media
+
+
+@router.delete("/{media_id}")
+def delete_media(
+    media_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Delete media (admin only for MVP)."""
+    deleted = MediaService.delete_media(db, media_id)
+
+    if not deleted:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Media not found"
+        )
+
+    return {"success": True}

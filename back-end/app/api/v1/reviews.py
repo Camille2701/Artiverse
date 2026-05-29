@@ -45,9 +45,9 @@ def get_media_reviews(
         )
     
     reviews, total = ReviewService.get_reviews_by_media(db, media_id, skip, limit)
-    
+
     return {
-        "items": reviews,
+        "items": [ReviewResponse.model_validate(r).model_dump(mode="json") for r in reviews],
         "total": total,
         "skip": skip,
         "limit": limit,

@@ -32,13 +32,13 @@ class TestUsers:
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_update_user_profile(self, client, test_user, auth_headers):
-        """Test updating user profile."""
+        """Test updating the current user's profile."""
         update_data = {
             "bio": "Updated bio",
             "avatar_url": "https://example.com/avatar.jpg"
         }
-        response = client.put(
-            f"/api/v1/users/{test_user.id}",
+        response = client.patch(
+            "/api/v1/users/me",
             json=update_data,
             headers=auth_headers
         )
@@ -46,15 +46,6 @@ class TestUsers:
         data = response.json()
         assert data["bio"] == "Updated bio"
         assert data["avatar_url"] == "https://example.com/avatar.jpg"
-
-    def test_update_user_not_found(self, client, auth_headers):
-        """Test updating non-existent user."""
-        response = client.put(
-            "/api/v1/users/99999",
-            json={"bio": "test"},
-            headers=auth_headers
-        )
-        assert response.status_code == status.HTTP_404_NOT_FOUND
 
     def test_list_users(self, client, test_user, test_user_2, auth_headers):
         """Test listing users."""

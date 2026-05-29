@@ -80,7 +80,7 @@ class TestMedia:
             "title": "Updated Movie",
             "synopsis": "Updated synopsis"
         }
-        response = client.put(
+        response = client.patch(
             f"/api/v1/media/{media_id}",
             json=update_data,
             headers=auth_headers

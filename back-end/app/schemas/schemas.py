@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
 from datetime import datetime
 from typing import Optional
 from enum import Enum
@@ -48,6 +48,13 @@ class UserProfileResponse(UserResponse):
 
 # ==================== MEDIA SCHEMAS ====================
 
+def _normalize_release_date(value):
+    """Accept a plain date string (YYYY-MM-DD) and promote it to a datetime."""
+    if isinstance(value, str) and len(value) == 10:
+        return f"{value}T00:00:00"
+    return value
+
+
 class MediaBase(BaseModel):
     title: str = Field(..., min_length=1, max_length=255)
     original_title: Optional[str] = None
@@ -55,6 +62,11 @@ class MediaBase(BaseModel):
     release_date: Optional[datetime] = None
     cover_image: Optional[str] = None
     banner_image: Optional[str] = None
+
+    @field_validator("release_date", mode="before")
+    @classmethod
+    def _parse_release_date(cls, value):
+        return _normalize_release_date(value)
 
 
 class MediaCreate(MediaBase):
@@ -68,6 +80,11 @@ class MediaUpdate(BaseModel):
     release_date: Optional[datetime] = None
     cover_image: Optional[str] = None
     banner_image: Optional[str] = None
+
+    @field_validator("release_date", mode="before")
+    @classmethod
+    def _parse_release_date(cls, value):
+        return _normalize_release_date(value)
 
 
 class MediaResponse(MediaBase):

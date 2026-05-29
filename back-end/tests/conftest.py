@@ -38,11 +38,11 @@ def test_db():
 def client(test_db):
     """Create a test client with dependency overrides."""
     def override_get_db():
-        try:
-            yield test_db
-        finally:
-            test_db.close()
-    
+        # Do NOT close the shared session here: the test_db fixture owns its
+        # lifecycle. Closing per-request detaches ORM instances held by other
+        # fixtures (test_user, test_user_2) and breaks subsequent attribute access.
+        yield test_db
+
     app.dependency_overrides[get_db] = override_get_db
     client = TestClient(app)
     yield client

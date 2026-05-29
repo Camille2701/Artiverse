@@ -3,11 +3,28 @@ from sqlalchemy.orm import Session
 
 from app.db import get_db
 from app.models import User
-from app.schemas import UserResponse, UserUpdate, UserProfileResponse
+from app.schemas import UserResponse, UserUpdate, UserProfileResponse, ReviewResponse, ListResponse
 from app.services import UserService, ReviewService, RatingService, ListService
 from app.dependencies.auth import get_current_user
 
 router = APIRouter(prefix="/users", tags=["users"])
+
+
+@router.get("", response_model=list[UserResponse])
+def list_users(
+    search: str | None = None,
+    skip: int = 0,
+    limit: int = 20,
+    db: Session = Depends(get_db)
+):
+    """List users, optionally filtered by a username/email search term."""
+    query = db.query(User)
+    if search:
+        like = f"%{search}%"
+        query = query.filter(
+            (User.username.ilike(like)) | (User.email.ilike(like))
+        )
+    return query.offset(skip).limit(limit).all()
 
 
 @router.get("/me", response_model=UserResponse)
@@ -87,9 +104,9 @@ def get_user_reviews(
         )
     
     reviews, total = ReviewService.get_reviews_by_user(db, user_id, skip, limit)
-    
+
     return {
-        "items": reviews,
+        "items": [ReviewResponse.model_validate(r).model_dump(mode="json") for r in reviews],
         "total": total,
         "skip": skip,
         "limit": limit
@@ -111,7 +128,7 @@ def get_user_lists(
         )
     
     lists = ListService.get_user_lists(db, user_id)
-    
+
     return {
-        "lists": lists
+        "lists": [ListResponse.model_validate(lst).model_dump(mode="json") for lst in lists]
     }

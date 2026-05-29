@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func, desc, and_
 from app.models import User, Media, Rating, Review, List, ListItem, MediaType
-from typing import Dict, List
+from typing import Dict
 from datetime import datetime, timedelta
 
 

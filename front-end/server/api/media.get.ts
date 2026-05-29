@@ -3,7 +3,9 @@ import { MediaType, type Media } from '~~/types/media';
 export default defineEventHandler(async (event): Promise<Media[]> => {
   try {
     const backendUrl = process.env.BACKEND_URL || 'http://localhost:8000';
-    const response = await $fetch<Media[]>(`${backendUrl}/api/v1/media`);
+    // Request a high limit: the backend list endpoint defaults to 10 items,
+    // which would truncate the catalog and hide whole media types.
+    const response = await $fetch<Media[]>(`${backendUrl}/api/v1/media?limit=100`);
 
     // Transform backend response to frontend format if needed
     return response.map((media: any) => ({

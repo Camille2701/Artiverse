@@ -23,6 +23,40 @@ services:
     networks:
       - artiverse-network
 
+  # MinIO (S3-compatible object storage)
+  minio:
+    image: minio/minio
+    container_name: artiverse-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"   # S3 API
+      - "9001:9001"   # Web console (http://localhost:9001)
+    volumes:
+      - minio_data:/data
+    networks:
+      - artiverse-network
+
+  # One-shot job: create the bucket and make it publicly readable
+  createbuckets:
+    image: minio/mc
+    container_name: artiverse-createbuckets
+    depends_on:
+      - minio
+    networks:
+      - artiverse-network
+    entrypoint: >
+      /bin/sh -c "
+        until /usr/bin/mc alias set local http://minio:9000 minioadmin minioadmin; do
+          echo 'waiting for minio...' && sleep 2;
+        done;
+        /usr/bin/mc mb --ignore-existing local/artiverse-media;
+        /usr/bin/mc anonymous set download local/artiverse-media;
+        echo 'minio bucket ready';
+      "
+
   # FastAPI Backend
   backend:
     build:
@@ -36,11 +70,23 @@ services:
       ACCESS_TOKEN_EXPIRE_MINUTES: 30
       DEBUG: "False"
       ENVIRONMENT: development
+      # Image storage via MinIO (S3-compatible)
+      STORAGE_BACKEND: s3
+      AWS_ACCESS_KEY_ID: minioadmin
+      AWS_SECRET_ACCESS_KEY: minioadmin
+      AWS_REGION: us-east-1
+      S3_BUCKET_NAME: artiverse-media
+      # Endpoint used by the backend (inside the docker network)
+      S3_ENDPOINT_URL: http://minio:9000
+      # Public base URL returned to the browser (reachable from the host)
+      S3_PUBLIC_URL: http://localhost:9000/artiverse-media
     ports:
       - "8000:8000"
     depends_on:
       postgres:
         condition: service_healthy
+      createbuckets:
+        condition: service_completed_successfully
     volumes:
       - .:/app
       - ./uploads:/app/uploads
@@ -56,6 +102,8 @@ services:
 
 volumes:
   postgres_data:
+    driver: local
+  minio_data:
     driver: local
 
 networks:

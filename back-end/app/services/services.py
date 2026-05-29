@@ -128,6 +128,13 @@ class MediaService:
         """Get trending media sorted by popularity."""
         return db.query(Media).order_by(desc(Media.popularity_score)).offset(skip).limit(limit).all()
 
+    @staticmethod
+    def delete_media(db: Session, media_id: str) -> bool:
+        """Delete a media by ID. Returns True if a row was removed."""
+        deleted = db.query(Media).filter(Media.id == media_id).delete()
+        db.commit()
+        return bool(deleted)
+
 
 class RatingService:
     """Service for rating-related operations."""

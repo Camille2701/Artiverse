@@ -2,84 +2,67 @@ import pytest
 from fastapi import status
 
 
+def _create_media(client, auth_headers, title="Test Movie"):
+    """Helper to create a media and return its id."""
+    response = client.post(
+        "/api/v1/media",
+        data={"media_type": "movie", "title": title},
+        headers=auth_headers
+    )
+    return response.json()["media"]["id"]
+
+
 class TestRatings:
     """Test rating endpoints."""
 
     def test_rate_media(self, client, test_user, auth_headers):
         """Test rating media."""
-        # First create media
-        media_data = {
-            "media_type": "movie",
-            "title": "Test Movie"
-        }
-        media_response = client.post(
-            "/api/v1/media",
-            data=media_data,
-            headers=auth_headers
-        )
-        media_id = media_response.json()["media"]["id"]
-        
-        # Then rate it
-        rating_data = {"rating": 4.5}
+        media_id = _create_media(client, auth_headers)
+
         response = client.post(
-            f"/api/v1/ratings?media_id={media_id}&rating=4.5",
+            "/api/v1/ratings",
+            json={"media_id": media_id, "score": 8},
             headers=auth_headers
         )
         assert response.status_code == status.HTTP_200_OK
+        assert response.json()["score"] == 8
 
     def test_get_media_ratings(self, client, test_user, test_user_2, auth_headers):
         """Test getting ratings for media."""
-        # Create media
-        media_data = {
-            "media_type": "movie",
-            "title": "Test Movie"
-        }
-        media_response = client.post(
-            "/api/v1/media",
-            data=media_data,
-            headers=auth_headers
-        )
-        media_id = media_response.json()["media"]["id"]
-        
-        # Rate it
+        media_id = _create_media(client, auth_headers)
+
         client.post(
-            f"/api/v1/ratings?media_id={media_id}&rating=4.5",
+            "/api/v1/ratings",
+            json={"media_id": media_id, "score": 9},
             headers=auth_headers
         )
-        
-        # Get ratings
+
         response = client.get(
             f"/api/v1/ratings/media/{media_id}",
             headers=auth_headers
         )
         assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["count"] == 1
 
     def test_update_rating(self, client, test_user, auth_headers):
         """Test updating a rating."""
-        # Create media
-        media_data = {
-            "media_type": "movie",
-            "title": "Test Movie"
-        }
-        media_response = client.post(
-            "/api/v1/media",
-            data=media_data,
+        media_id = _create_media(client, auth_headers)
+
+        create_response = client.post(
+            "/api/v1/ratings",
+            json={"media_id": media_id, "score": 7},
             headers=auth_headers
         )
-        media_id = media_response.json()["media"]["id"]
-        
-        # Rate it
-        client.post(
-            f"/api/v1/ratings?media_id={media_id}&rating=3.5",
-            headers=auth_headers
-        )
-        
-        # Update rating
-        response = client.put(
-            f"/api/v1/ratings/{media_id}?rating=4.5",
+        rating_id = create_response.json()["id"]
+
+        response = client.patch(
+            f"/api/v1/ratings/{rating_id}",
+            json={"score": 9},
             headers=auth_headers
         )
         assert response.status_code == status.HTTP_200_OK
+        assert response.json()["score"] == 9
 
 
 class TestReviews:
@@ -87,138 +70,87 @@ class TestReviews:
 
     def test_create_review(self, client, test_user, auth_headers):
         """Test creating a review."""
-        # Create media
-        media_data = {
-            "media_type": "movie",
-            "title": "Test Movie"
-        }
-        media_response = client.post(
-            "/api/v1/media",
-            data=media_data,
-            headers=auth_headers
-        )
-        media_id = media_response.json()["media"]["id"]
-        
-        # Create review
+        media_id = _create_media(client, auth_headers)
+
         review_data = {
+            "media_id": media_id,
             "title": "Great movie!",
             "content": "This is a great movie, highly recommended.",
-            "rating": 4.5
+            "spoiler": False
         }
         response = client.post(
-            f"/api/v1/reviews?media_id={media_id}",
+            "/api/v1/reviews",
             json=review_data,
             headers=auth_headers
         )
         assert response.status_code == status.HTTP_200_OK
+        assert response.json()["title"] == "Great movie!"
 
     def test_get_media_reviews(self, client, test_user, auth_headers):
         """Test getting reviews for media."""
-        # Create media
-        media_data = {
-            "media_type": "movie",
-            "title": "Test Movie"
-        }
-        media_response = client.post(
-            "/api/v1/media",
-            data=media_data,
-            headers=auth_headers
-        )
-        media_id = media_response.json()["media"]["id"]
-        
-        # Create review
-        review_data = {
-            "title": "Great movie!",
-            "content": "This is a great movie.",
-            "rating": 4.5
-        }
+        media_id = _create_media(client, auth_headers)
+
         client.post(
-            f"/api/v1/reviews?media_id={media_id}",
-            json=review_data,
+            "/api/v1/reviews",
+            json={
+                "media_id": media_id,
+                "title": "Great movie!",
+                "content": "This is a great movie.",
+                "spoiler": False
+            },
             headers=auth_headers
         )
-        
-        # Get reviews
+
         response = client.get(
-            f"/api/v1/reviews?media_id={media_id}",
+            f"/api/v1/reviews/media/{media_id}",
             headers=auth_headers
         )
         assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["total"] == 1
 
     def test_update_review(self, client, test_user, auth_headers):
         """Test updating a review."""
-        # Create media
-        media_data = {
-            "media_type": "movie",
-            "title": "Test Movie"
-        }
-        media_response = client.post(
-            "/api/v1/media",
-            data=media_data,
-            headers=auth_headers
-        )
-        media_id = media_response.json()["media"]["id"]
-        
-        # Create review
-        review_data = {
-            "title": "Good movie",
-            "content": "It was good.",
-            "rating": 3.5
-        }
+        media_id = _create_media(client, auth_headers)
+
         create_response = client.post(
-            f"/api/v1/reviews?media_id={media_id}",
-            json=review_data,
+            "/api/v1/reviews",
+            json={
+                "media_id": media_id,
+                "title": "Good movie",
+                "content": "It was good.",
+                "spoiler": False
+            },
             headers=auth_headers
         )
-        
-        if create_response.status_code == status.HTTP_200_OK:
-            review_id = create_response.json().get("id")
-            
-            # Update review
-            update_data = {
-                "title": "Great movie",
-                "content": "Actually it was great!",
-                "rating": 4.5
-            }
-            response = client.put(
-                f"/api/v1/reviews/{review_id}",
-                json=update_data,
-                headers=auth_headers
-            )
-            assert response.status_code == status.HTTP_200_OK
+        review_id = create_response.json()["id"]
+
+        response = client.patch(
+            f"/api/v1/reviews/{review_id}",
+            json={"title": "Great movie", "content": "Actually it was great!"},
+            headers=auth_headers
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["title"] == "Great movie"
 
     def test_delete_review(self, client, test_user, auth_headers):
         """Test deleting a review."""
-        # Create media
-        media_data = {
-            "media_type": "movie",
-            "title": "Test Movie"
-        }
-        media_response = client.post(
-            "/api/v1/media",
-            data=media_data,
-            headers=auth_headers
-        )
-        media_id = media_response.json()["media"]["id"]
-        
-        # Create review
-        review_data = {
-            "title": "Test review",
-            "content": "Test content.",
-            "rating": 3.0
-        }
+        media_id = _create_media(client, auth_headers)
+
         create_response = client.post(
-            f"/api/v1/reviews?media_id={media_id}",
-            json=review_data,
+            "/api/v1/reviews",
+            json={
+                "media_id": media_id,
+                "title": "Test review",
+                "content": "Test content.",
+                "spoiler": False
+            },
             headers=auth_headers
         )
-        
-        if create_response.status_code == status.HTTP_200_OK:
-            review_id = create_response.json().get("id")
-            
-            # Delete review
-            response = client.delete(
-                f"/api/v1/reviews/{review_id}",
-                headers=auth_headers
-            )
-            assert response.status_code == status.HTTP_200_OK
+        review_id = create_response.json()["id"]
+
+        response = client.delete(
+            f"/api/v1/reviews/{review_id}",
+            headers=auth_headers
+        )
+        assert response.status_code == status.HTTP_204_NO_CONTENT

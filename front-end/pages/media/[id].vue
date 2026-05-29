@@ -38,13 +38,15 @@ async function fetchMediaDetails() {
     media.value = mediaData
     reviews.value = reviewsData?.items || []
 
-    // Fetch user rating if authenticated
+    // Fetch user rating if authenticated (endpoint returns null when not rated)
     if (isAuthenticated.value) {
       try {
-        userRating.value = await fetchWithAuth(`/api/v1/ratings/${mediaId}`)
+        userRating.value = await fetchWithAuth(`/api/v1/ratings/media/${mediaId}/me`)
       } catch (err) {
-        // User hasn't rated this media yet
+        // Never let an optional rating lookup surface as a page error
         userRating.value = null
+      } finally {
+        clearError()
       }
     }
   } catch (err: any) {

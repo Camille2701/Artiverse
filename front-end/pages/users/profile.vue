@@ -5,124 +5,118 @@
       <p class="text-text-secondary mt-2 font-body">Gérez votre identité culturelle et découvrez vos statistiques</p>
     </div>
 
+    <!-- Loading -->
+    <div v-if="loading" class="flex flex-col items-center justify-center py-20">
+      <div class="spinner"></div>
+      <p class="mt-4 text-text-secondary font-body">Chargement de votre profil...</p>
+    </div>
+
+    <!-- Error / not authenticated -->
+    <div v-else-if="loadError" class="card p-6 border-l-4 border-l-red-500">
+      <h3 class="text-lg font-semibold text-red-400">Erreur de chargement</h3>
+      <p class="mt-2 text-sm text-text-secondary">{{ loadError }}</p>
+      <NuxtLink to="/users/login" class="mt-4 inline-block btn-primary text-sm px-4 py-2">
+        Se connecter
+      </NuxtLink>
+    </div>
+
+    <!-- Profile -->
     <UserProfile
-      :user="mockUser"
-      :stats="mockStats"
-      :badges="mockBadges"
-      :favorite-media="mockFavoriteMedia"
-      :recent-activity="mockRecentActivity"
+      v-else-if="profileUser"
+      :user="profileUser"
+      :stats="stats"
+      :badges="badges"
+      :favorite-media="favoriteMedia"
+      :recent-activity="recentActivity"
     />
   </div>
 </template>
 
 <script setup lang="ts">
 import UserProfile from '~/components/UserProfile.vue'
+import { useApi } from '~/composables/useApi'
 
-// Mock data - replace with real API calls
-const mockUser = {
-  id: '1',
-  username: 'Cinéphile Passionné',
-  email: 'user@example.com',
-  avatar: undefined,
-  bio: 'Amateur de cinéma indépendant et de jeux vidéo rétro',
-  level: 12,
-  experiencePoints: 3450
+const { fetchWithAuth, getErrorMessage } = useApi()
+
+const profileUser = ref<any>(null)
+const stats = ref({ movies: 0, series: 0, games: 0, books: 0 })
+const badges = ref<any[]>([])
+const favoriteMedia = ref<any[]>([])
+const recentActivity = ref<any[]>([])
+const loading = ref(true)
+const loadError = ref('')
+
+const ACTIVITY_META: Record<string, { icon: string; title: string }> = {
+  review_created: { icon: '📝', title: 'Critique publiée' },
+  rating_given: { icon: '⭐', title: 'Note donnée' },
+  list_created: { icon: '📋', title: 'Liste créée' },
+  media_added_to_list: { icon: '➕', title: 'Média ajouté à une liste' },
+  badge_earned: { icon: '🏅', title: 'Badge débloqué' },
+  level_up: { icon: '🚀', title: 'Niveau supérieur' },
 }
 
-const mockStats = {
-  movies: 45,
-  series: 23,
-  games: 31,
-  books: 18
+async function loadProfile() {
+  loading.value = true
+  loadError.value = ''
+  try {
+    const me: any = await fetchWithAuth('/api/v1/users/me')
+    profileUser.value = {
+      id: me.id,
+      username: me.username,
+      email: me.email,
+      avatar: me.avatar_url || undefined,
+      bio: me.bio || undefined,
+      level: me.level,
+      experiencePoints: me.experience_points,
+    }
+
+    const [statData, badgeData, activityData]: any[] = await Promise.all([
+      fetchWithAuth(`/api/v1/statistics/users/${me.id}`),
+      fetchWithAuth('/api/v1/badges/my-badges').catch(() => []),
+      fetchWithAuth(`/api/v1/social/activity/${me.id}`).catch(() => ({ activity: [] })),
+    ])
+
+    const td = statData?.taste_distribution || {}
+    stats.value = {
+      movies: td.movie?.total || 0,
+      series: td.tv_series?.total || 0,
+      games: td.video_game?.total || 0,
+      books: td.book?.total || 0,
+    }
+
+    favoriteMedia.value = (statData?.top_rated || []).map((m: any) => ({
+      id: m.media_id,
+      title: m.title,
+      image: m.cover_image || undefined,
+      type: m.media_type,
+    }))
+
+    badges.value = (badgeData || []).map((b: any) => ({
+      id: b.id,
+      name: b.name,
+      description: b.description,
+      icon: b.icon || '🏅',
+      level: b.tier,
+      style: b.tier,
+    }))
+
+    recentActivity.value = (activityData?.activity || []).map((a: any) => {
+      const meta = ACTIVITY_META[a.activity_type] || { icon: '•', title: a.activity_type }
+      const mediaTitle = a.media?.title
+      return {
+        id: a.id,
+        icon: meta.icon,
+        title: meta.title,
+        description: mediaTitle ? `${meta.title} — « ${mediaTitle} »` : meta.title,
+        date: a.created_at,
+      }
+    })
+  } catch (err: any) {
+    loadError.value = getErrorMessage(err)
+  } finally {
+    loading.value = false
+  }
 }
 
-const mockBadges = [
-  {
-    id: '1',
-    name: 'Cinéphile Débutant',
-    description: 'A regardé 10 films',
-    icon: '🎬',
-    level: 'Débutant',
-    style: 'flat',
-    mediaType: 'movie'
-  },
-  {
-    id: '2',
-    name: 'Séries Binge-Watcher',
-    description: 'A terminé 5 séries',
-    icon: '📺',
-    level: 'Intermédiaire',
-    style: 'gradient',
-    mediaType: 'series'
-  },
-  {
-    id: '3',
-    name: 'Gamer Hardcore',
-    description: 'A joué à 20 jeux différents',
-    icon: '🎮',
-    level: 'Expert',
-    style: 'holographic',
-    mediaType: 'game'
-  },
-  {
-    id: '4',
-    name: 'Lecteur Passionné',
-    description: 'A lu 15 livres',
-    icon: '📚',
-    level: 'Intermédiaire',
-    style: 'gradient',
-    mediaType: 'book'
-  }
-]
-
-const mockFavoriteMedia = [
-  {
-    id: '1',
-    title: 'Inception',
-    image: 'https://via.placeholder.com/400x600',
-    type: 'movie'
-  },
-  {
-    id: '2',
-    title: 'Breaking Bad',
-    image: 'https://via.placeholder.com/400x600',
-    type: 'series'
-  },
-  {
-    id: '3',
-    title: 'The Legend of Zelda',
-    image: 'https://via.placeholder.com/400x600',
-    type: 'game'
-  },
-  {
-    id: '4',
-    title: 'Dune',
-    image: 'https://via.placeholder.com/400x600',
-    type: 'book'
-  }
-]
-
-const mockRecentActivity = [
-  {
-    id: '1',
-    icon: '⭐',
-    title: 'Nouveau badge débloqué',
-    description: 'Vous avez obtenu le badge "Cinéphile Débutant"',
-    date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
-  },
-  {
-    id: '2',
-    icon: '🎬',
-    title: 'Film regardé',
-    description: 'Vous avez regardé "Inception"',
-    date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
-  },
-  {
-    id: '3',
-    icon: '📝',
-    title: 'Critique publiée',
-    description: 'Vous avez publié une critique pour "Breaking Bad"',
-    date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-  }
-]
+onMounted(loadProfile)
 </script>
