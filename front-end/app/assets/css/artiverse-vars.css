@@ -1,0 +1,46 @@
+/* Artiverse design variables and base styles */
+:root {
+  --c-void:          #1A1040;
+  --c-deep:          #221955;
+  --c-indigo:        #26215C;
+  --c-indigo-mid:    #3C3489;
+  --c-purple:        #534AB7;
+  --c-purple-light:  #7F77DD;
+  --c-purple-muted:  #AFA9EC;
+  --c-purple-pale:   #CECBF6;
+  --c-purple-ghost:  #EEEDFE;
+
+  --c-gold:          #EF9F27;
+  --c-gold-light:    #FAC775;
+  --c-gold-dark:     #633806;
+  --c-gold-deep:     #412402;
+
+  --c-text:          #F1EFE8;
+  --c-text-muted:    #AFA9EC;
+  --c-text-hint:     #7F77DD;
+  --c-text-dim:      #534AB7;
+
+  --c-teal:          #5DCAA5;
+  --c-teal-dark:     #085041;
+  --c-pink:          #ED93B1;
+  --c-pink-dark:     #4B1528;
+
+  --c-border:        #3C3489;
+  --c-border-dim:    #26215C;
+  --c-border-faint:  rgba(83,74,183,0.2);
+
+  --font-display:    'Syne', sans-serif;
+  --font-body:       'DM Sans', sans-serif;
+
+  --radius-sm:   6px;
+  --radius-md:   8px;
+  --radius-lg:   10px;
+  --radius-xl:   14px;
+  --radius-full: 9999px;
+
+  --nav-height: 56px;
+}
+
+/* basic resets */
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-body);background:var(--c-void);color:var(--c-text)}
