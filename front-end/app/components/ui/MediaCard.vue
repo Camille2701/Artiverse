@@ -1,21 +1,21 @@
 <template>
-  <article class="media-card" :aria-label="`${item.title} — ${typeLabel} — Note ${item.score}`">
-    <div class="card-thumb" :style="{ background: style.bg }">
-      <span class="card-rank" aria-hidden="true">N°{{ item.rank }}</span>
-      <i :class="['ti', style.icon]" :style="{ color: style.color }" aria-hidden="true" />
+  <article class="mcard" :aria-label="`${item.title} — ${typeLabel} — Note ${item.score}`">
+    <div class="mcard-top" :style="{ background: style.bg }">
+      <span class="mcard-rank" aria-hidden="true">N°{{ item.rank }}</span>
+      <i class="mcard-icon" :style="{ color: style.color }" aria-hidden="true" />
     </div>
 
-    <div class="card-body">
-      <h3 class="card-title">{{ item.title }}</h3>
-      <p class="card-meta">{{ item.year }} · {{ typeLabel }}</p>
+    <div class="mcard-body">
+      <h3 class="mcard-title">{{ item.title }}</h3>
+      <p class="mcard-meta">{{ item.year }} · {{ typeLabel }}</p>
 
-      <div class="card-rating">
+      <div class="mcard-stars">
         <span class="card-stars" aria-hidden="true">{{ stars }}</span>
         <span class="card-score">{{ item.score }}</span>
       </div>
 
-      <ul v-if="item.tags.length" class="card-tags" role="list">
-        <li v-for="(tag, i) in item.tags" :key="tag" :class="['tag', i === 0 ? style.tagClass : '']">
+      <ul v-if="item.tags.length" class="mcard-tags" role="list">
+        <li v-for="(tag, i) in item.tags" :key="tag" :class="['tag', i === 0 ? style.tagClass : '']" class="mtag">
           {{ tag }}
         </li>
       </ul>

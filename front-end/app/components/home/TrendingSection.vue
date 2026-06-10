@@ -1,6 +1,6 @@
 <template>
   <section class="trending" aria-labelledby="trending-title">
-    <div class="sec-header">
+    <div class="sec-head">
       <div class="sec-title-group">
         <h2 id="trending-title" class="sec-title">TENDANCES</h2>
         <span class="sec-sub" aria-hidden="true">cette semaine</span>

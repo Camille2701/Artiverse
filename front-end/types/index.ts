@@ -13,6 +13,14 @@ export interface MediaItem {
   director?: string
 }
 
+export interface SideItem {
+    id: number
+    title: string
+    score: number
+    imgLink: string
+    imgAlt: string
+}
+
 export interface ActivityItem {
   id: number
   user: { initials: string; color: string; textColor: string }

@@ -46,8 +46,10 @@
 .ftag-g{background:#633806;color:#FAC775;}
 .feat-desc{font-size:12px;color:#AFA9EC;line-height:1.6;font-weight:300;border-top:0.5px solid #3C3489;padding-top:10px;}
 .mini-cards-row{display:flex;gap:8px;margin-top:10px;}
+.mini-list{width: 33%;}
 .mini-card{flex:1;background:#1A1040;border:0.5px solid #26215C;border-radius:8px;padding:8px 10px;display:flex;align-items:center;gap:8px;}
-.mini-icon{width:28px;height:28px;border-radius:6px;background:#26215C;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.mini-icon{width:36px;height:100%;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.mini-info{display: flex; flex-direction: column;}
 .mini-title{font-size:11px;color:#D3D1C7;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .mini-score{font-size:10px;color:#EF9F27;}
 
@@ -69,7 +71,7 @@
 .sec-more{font-size:11px;color:#534AB7;display:flex;align-items:center;gap:4px;}
 
 /* TRENDING CARDS */
-.cards4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+.cards-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
 .mcard{background:#26215C;border:0.5px solid #3C3489;border-radius:10px;overflow:hidden;transition:border-color .2s;}
 .mcard-top{height:80px;background:#221955;display:flex;align-items:center;justify-content:center;position:relative;}
 .mcard-icon{font-size:30px;}
