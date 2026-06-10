@@ -18,7 +18,7 @@
         <div class="section-separator" role="separator" />
 
         <!-- Activity + Categories -->
-        <section class="bottom-grid" aria-label="Communauté et exploration">
+        <section class="two-col" aria-label="Communauté et exploration">
           <HomeActivityFeed :items="activity" />
           <HomeCategoryGrid :categories="categories" />
         </section>

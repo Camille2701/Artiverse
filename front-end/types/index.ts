@@ -3,6 +3,8 @@ export type MediaType = 'film' | 'serie' | 'jeu' | 'livre'
 export interface MediaItem {
   id: number
   title: string
+  imgLink: string
+  imgAlt: string
   year: number
   type: MediaType
   score: number
@@ -35,9 +37,8 @@ export interface CategoryItem {
   id: MediaType
   label: string
   count: string
-  icon: string
-  iconColor: string
-  iconBg: string
+  imgLink: string
+  imgLabel: string
 }
 
 export interface StatItem {

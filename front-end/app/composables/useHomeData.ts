@@ -30,25 +30,33 @@ export const useHomeData = () => {
   const trending: MediaItem[] = [
     {
       id: 5, rank: 1,
+      imgLink: "alien_romulus.png",
+      imgAlt:"Cover du film Alien: Romulus",
       title: 'Alien: Romulus',
       year: 2024, type: 'film', score: 8.7,
       tags: ['Horreur', 'SF'],
     },
     {
       id: 6, rank: 2,
+      imgLink: "black_myth_wukong.png",
+      imgAlt:"Cover du jeu Back Myth: Wukong",
       title: 'Black Myth: Wukong',
       year: 2024, type: 'jeu', score: 9.2,
       tags: ['Action RPG', 'Mythologie'],
     },
     {
       id: 7, rank: 3,
-      title: 'The Bear S3',
+      title: 'The Bear: S3',
+      imgLink: "the_bear_s3.png",
+      imgAlt:"Cover de la série The Bear: S3",
       year: 2024, type: 'serie', score: 9.1,
       tags: ['Drame', 'Cuisine'],
     },
     {
       id: 8, rank: 4,
       title: 'Orbital',
+      imgLink: "orbital.png",
+      imgAlt:"Cover du roman Orbital",
       year: 2024, type: 'livre', score: 8.5,
       tags: ['Booker Prize', 'Littérature'],
     },
@@ -57,7 +65,7 @@ export const useHomeData = () => {
   const activity: ActivityItem[] = [
     {
       id: 1,
-      user: { initials: 'ML', color: '#3C3489', textColor: '#CECBF6' },
+      user: { initials: 'ML'},
       action: 'a noté',
       target: 'Oppenheimer',
       extra: '9/10',
@@ -65,7 +73,7 @@ export const useHomeData = () => {
     },
     {
       id: 2,
-      user: { initials: 'TK', color: '#633806', textColor: '#FAC775' },
+      user: { initials: 'TK'},
       action: 'a terminé',
       target: "Baldur's Gate 3",
       extra: 'Platine',
@@ -74,14 +82,14 @@ export const useHomeData = () => {
     },
     {
       id: 3,
-      user: { initials: 'SB', color: '#085041', textColor: '#5DCAA5' },
+      user: { initials: 'SB'},
       action: 'a ajouté 3 films à',
       target: 'À voir absolument',
       time: 'Il y a 28 min',
     },
     {
       id: 4,
-      user: { initials: 'NR', color: '#4B1528', textColor: '#ED93B1' },
+      user: { initials: 'NR'},
       action: 'a critiqué',
       target: 'The Bear S3',
       extra: '"Bouleversant"',
@@ -91,10 +99,10 @@ export const useHomeData = () => {
   ]
 
   const categories: CategoryItem[] = [
-    { id: 'film',  label: 'Films',      count: '842 000 titres',  icon: 'ti-movie',             iconColor: '#7F77DD', iconBg: '#26215C' },
-    { id: 'serie', label: 'Séries',     count: '128 000 titres',  icon: 'ti-device-tv',         iconColor: '#5DCAA5', iconBg: '#04342C' },
-    { id: 'jeu',   label: 'Jeux vidéo', count: '310 000 jeux',    icon: 'ti-device-gamepad-2',  iconColor: '#EF9F27', iconBg: '#1A1040' },
-    { id: 'livre', label: 'Livres',     count: '4,2 millions',    icon: 'ti-book',              iconColor: '#ED93B1', iconBg: '#4B1528' },
+    { id: 'film',  label: 'Films',      count: '842 000 titres',  imgLink: '/icons/films.png',  imgAlt: 'icone films'},
+    { id: 'serie', label: 'Séries',     count: '128 000 titres',  imgLink: '/icons/series.png', imgAlt: 'icone series'},
+    { id: 'jeu',   label: 'Jeux vidéo', count: '310 000 jeux',    imgLink: '/icons/jeux.png',   imgAlt: 'icone jeux'},
+    { id: 'livre', label: 'Livres',     count: '4,2 millions',    imgLink: '/icons/livres.png', imgAlt: 'icone livres'},
   ]
 
   return { stats, featuredItem, sideItems, trending, activity, categories }

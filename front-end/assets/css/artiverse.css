@@ -29,7 +29,7 @@
 .btn-cta{font-family:'DM Sans',sans-serif;font-size:13px;color:#EEEDFE;background:#534AB7;border:none;border-radius:8px;padding:11px 22px;letter-spacing:.01em;}
 .btn-ghost{font-family:'DM Sans',sans-serif;font-size:13px;color:#7F77DD;background:transparent;border:0.5px solid #3C3489;border-radius:8px;padding:11px 22px;display:flex;align-items:center;gap:6px;}
 /* fixed search under nav */
-.search-fixed{position:fixed;top:56px;left:0;right:0;display:block;z-index:45;padding:16px 40px 0;pointer-events:none;box-sizing:border-box}
+.search-fixed{position:fixed;top:65px;left:0;right:0;display:block;z-index:45;padding:16px 40px 0;pointer-events:none;box-sizing:border-box}
 .search-inner{width:100%;padding:0;box-sizing:border-box;pointer-events:auto}
 .search-inner input{width:100%;height:52px;border-radius:999px;padding:0 24px;background:rgba(43,34,98,0.96);border:1px solid #3f3790;color:#CFC9F4;font-size:15px;box-shadow:0 0 0 1px rgba(101,88,198,0.18) inset, 0 0 0 1px rgba(38,33,92,0.35)}
 .search-inner input::placeholder{color:#6f66a3}

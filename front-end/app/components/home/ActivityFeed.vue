@@ -1,6 +1,6 @@
 <template>
-  <section aria-labelledby="activity-title">
-    <div class="sec-header">
+  <section aria-labelledby="activity-title" class="sec">
+    <div class="sec-head">
       <h2 id="activity-title" class="sec-title">ACTIVITÉ</h2>
       <NuxtLink to="/communaute" class="sec-more">
         Voir tout <i class="ti ti-arrow-right" aria-hidden="true" />
@@ -8,27 +8,24 @@
     </div>
 
     <ol class="feed" aria-label="Activité récente de la communauté">
-      <li v-for="item in items" :key="item.id" class="feed-item">
+      <li v-for="item in items" :key="item.id" class="fi">
         <div
-          class="avatar"
-          :style="{ background: item.user.color, color: item.user.textColor }"
+          class="av"
           aria-hidden="true"
         >
           {{ item.user.initials }}
         </div>
 
         <div class="feed-content">
-          <p class="feed-text">
-            <span class="feed-name">{{ item.user.initials }}</span>
+          <p class="fi-text">
+            <span class="fi-name">{{ item.user.initials }}</span>
             {{ item.action }}
-            <span class="feed-target">{{ item.target }}</span>
+            <span class="fi-target">{{ item.target }}</span>
             <template v-if="item.extra">
-              <span v-if="item.extraType === 'badge'" class="feed-badge">{{ item.extra }}</span>
-              <span v-else-if="item.extraType === 'quote'" class="feed-quote">{{ item.extra }}</span>
-              <span v-else class="feed-note">— {{ item.extra }}</span>
+              <span> - {{ item.extra }}</span>
             </template>
           </p>
-          <time class="feed-time" :datetime="item.time">{{ item.time }}</time>
+          <time class="fi-time" :datetime="item.time">{{ item.time }}</time>
         </div>
       </li>
     </ol>

@@ -1,6 +1,7 @@
 <template>
   <article class="mcard" :aria-label="`${item.title} — ${typeLabel} — Note ${item.score}`">
-    <div class="mcard-top" :style="{ background: style.bg }">
+    <div class="mcard-top">
+      <img class="mcard-img" :src="`/images/${ item.imgLink }`" :alt="item.imgAlt">
       <span class="mcard-rank" aria-hidden="true">N°{{ item.rank }}</span>
       <i class="mcard-icon" :style="{ color: style.color }" aria-hidden="true" />
     </div>
@@ -9,13 +10,13 @@
       <h3 class="mcard-title">{{ item.title }}</h3>
       <p class="mcard-meta">{{ item.year }} · {{ typeLabel }}</p>
 
-      <div class="mcard-stars">
+      <div class="mcard-stars mcard-row">
         <span class="card-stars" aria-hidden="true">{{ stars }}</span>
         <span class="card-score">{{ item.score }}</span>
       </div>
 
       <ul v-if="item.tags.length" class="mcard-tags" role="list">
-        <li v-for="(tag, i) in item.tags" :key="tag" :class="['tag', i === 0 ? style.tagClass : '']" class="mtag">
+        <li v-for="(tag, i) in item.tags" :key="tag" :class="['tag', i === 0 ? style.tagClass : 'gold']" class="mtag">
           {{ tag }}
         </li>
       </ul>

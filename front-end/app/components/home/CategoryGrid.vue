@@ -1,14 +1,14 @@
 <template>
-  <section aria-labelledby="categories-title">
-    <div class="sec-header">
+  <section aria-labelledby="categories-title" class="sec">
+    <div class="sec-head">
       <h2 id="categories-title" class="sec-title">EXPLORER</h2>
     </div>
 
-    <ul class="cat-grid" role="list">
+    <ul class="cats" role="list">
       <li v-for="cat in categories" :key="cat.id">
-        <NuxtLink :to="categoryPath(cat.id)" class="cat-item" :aria-label="`${cat.label} — ${cat.count}`">
-          <div class="cat-icon-wrap" :style="{ background: cat.iconBg }">
-            <i :class="['ti', cat.icon]" :style="{ color: cat.iconColor }" aria-hidden="true" />
+        <NuxtLink :to="categoryPath(cat.id)" class="cat" :aria-label="`${cat.label} — ${cat.count}`">
+          <div class="cat-icon-wrap">
+            <img class="cat-img" :src="`${cat.imgLink}`" :alt="cat.imgAlt">
           </div>
           <div class="cat-info">
             <span class="cat-name">{{ cat.label }}</span>
