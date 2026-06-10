@@ -22,9 +22,9 @@ export const useHomeData = () => {
   }
 
   const sideItems: MediaItem[] = [
-    { id: 2, title: 'Elden Ring',    year: 2022, type: 'jeu',   score: 9.6, tags: [] },
-    { id: 3, title: 'Shōgun',       year: 2024, type: 'serie', score: 9.0, tags: [] },
-    { id: 4, title: 'Intermezzo',   year: 2024, type: 'livre', score: 8.3, tags: [] },
+    { id: 2, title: 'Elden Ring', type: 'jeu', score: 9.6, imgLink:"elden_ring" , imgAlt:"Image du jeu Elden Ring", tags: [] },
+    { id: 3, title: 'Shōgun', type: 'serie', score: 9.0, imgLink:"shogun" , imgAlt:"Image de la série Shogun", tags: [] },
+    { id: 4, title: 'Intermezzo', type: 'livre', score: 8.3, imgLink:"intermezzo" , imgAlt:"Image du livre Intermezzo", tags: [] },
   ]
 
   const trending: MediaItem[] = [

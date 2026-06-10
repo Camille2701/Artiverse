@@ -57,15 +57,17 @@
         </div>
       </article>
 
-      <ul class="side-cards" role="list">
-        <li v-for="item in sideItems" :key="item.id" class="side-card">
-          <div class="side-icon" :style="{ background: getStyle(item.type).bg }">
-            <i :class="['ti', getStyle(item.type).icon]" :style="{ color: getStyle(item.type).color }" aria-hidden="true" />
-          </div>
-          <div class="side-info">
-            <span class="side-title">{{ item.title }}</span>
-            <span class="side-score" :aria-label="`Note : ${item.score}`">★ {{ item.score }}</span>
-          </div>
+      <ul class="mini-cards-row" role="list">
+        <li v-for="item in sideItems" :key="item.id" class="mini-list">
+            <div class="mini-card">
+                <div class="mini-icon">
+                    <img :src="`/images/${item.imgLink}.png`" :alt="item.imgAlt">
+                </div>
+                <div class="mini-info">
+                    <span class="mini-title">{{ item.title }}</span>
+                    <span class="mini-score" :aria-label="`Note : ${item.score}`">★ {{ item.score }}</span>
+                </div>
+            </div>
         </li>
       </ul>
     </div>
@@ -86,14 +88,14 @@
 </template>
 
 <script setup lang="ts">
-import type { MediaItem, StatItem } from '~/types'
+import type { MediaItem, StatItem, SideItem } from '~/types'
 
 const { getStyle } = useMediaStyle()
 
-defineProps<{
+const props = defineProps<{
   stats:     StatItem[]
   featured:  MediaItem
-  sideItems: MediaItem[]
+  sideItems: SideItem[]
 }>()
 
 const specialTags: Record<string, string> = {
