@@ -1,43 +1,17 @@
-<script setup lang="ts">
-const router = useRouter()
-const { isAuthenticated, logout } = useAuth()
-
-const handleLogout = () => {
-    logout()
-    router.push('/users/login')
-}
-</script>
-
 <template>
 
   <div class="flex flex-col min-h-screen bg-gray-50">
+    <LayoutAppNav />
 
-    <header class="bg-zinc-900 text-white shadow-md">
-      <nav class="container mx-auto flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-6 lg:px-8">
-        <h1 class="text-xl font-bold tracking-tight sm:text-2xl"><NuxtLink to="/home">Artiverse</NuxtLink></h1>
-
-        <div class="flex items-center gap-x-4 text-sm sm:text-base">
-          <NuxtLink to="/" class="transition hover:text-accent-light">Manage</NuxtLink>
-
-          <button v-if="isAuthenticated" @click="handleLogout" class="transition hover:text-accent-light">Se déconnecter</button>
-          <template v-else>
-            <NuxtLink to="/users/login" class="transition hover:text-accent-light">Se connecter</NuxtLink>
-            <NuxtLink
-              to="/users/new"
-              class="inline-flex items-center rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-white transition-all duration-200 ease-out hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-1"
-            >
-              Créer un compte
-            </NuxtLink>
-          </template>
-          <NuxtLink v-if="isAuthenticated" to="/users/profile" class="transition hover:text-accent-light">Profil</NuxtLink>
-        </div>
-
-      </nav>
-    </header>
+    <div class="search-fixed" role="search" style="position:fixed;top:56px;left:0;right:0;display:block;z-index:45;padding:16px 40px 0;pointer-events:none;box-sizing:border-box;display: flex; align-items: center; justify-content: center;">
+      <div class="search-inner" style="width:50%;box-sizing:border-box;pointer-events:auto;">
+        <input type="search" placeholder="Rechercher..." aria-label="Rechercher" style="width:100%;height:40px;border-radius:999px;padding:0 24px;background:rgba(43,34,98,0.96);border:0.5px solid #3f3790;color:#CFC9F4;font-size:15px;box-shadow:0 0 0 1px rgba(101,88,198,0.18) inset, 0 0 0 1px rgba(38,33,92,0.35);box-sizing:border-box;" />
+      </div>
+    </div>
     
-    <div class="container mx-auto px-4 py-8 flex-grow flex flex-col md:flex-row gap-8">
+    <div class="w-full px-0 py-0 flex-grow flex flex-col md:flex-row gap-8">
       <!-- Main Content -->
-      <main class="w-full md:w-3/4">
+      <main class="w-full">
         <slot />
       </main>
     </div>

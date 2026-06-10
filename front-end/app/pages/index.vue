@@ -1,84 +1,46 @@
 <template>
-  <div>
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
-      <h1 class="text-3xl font-extrabold text-gray-900">Bibliothèque Multimédia</h1>
-      <button 
-        @click="showForm = !showForm" 
-        class="btn-accent w-full sm:w-auto"
-      >
-        {{ showForm ? 'Annuler' : 'Ajouter un média' }}
-      </button>
-    </div>
+  <div class="page">
+    <main id="main-content">
 
-    <div v-if="showForm" class="mb-8">
-        <MediaForm @submit="handleAdd" />
-    </div>
-    
-    <div>
+      <!-- Hero -->
+      <HomeHeroSection
+        :stats="stats"
+        :featured="featuredItem"
+        :side-items="sideItems"
+      />
 
-      <div class="space-y-6">
-        <div v-if="pending" class="flex justify-center items-center py-20">
-          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-accent"></div>
-        </div>
+      <div class="section-separator" role="separator" />
 
-        <div v-else-if="error" class="bg-red-50 p-4 rounded-md">
-           <h3 class="text-lg font-medium text-red-800">Erreur</h3>
-           <p class="text-sm text-red-700 mt-2">{{ error.message }}</p>
-           <button @click="refresh()" class="mt-4 text-sm font-medium text-red-600 hover:text-red-500">Réessayer</button>
-        </div>
+      <div class="content-frame" style="padding:0 40px;box-sizing:border-box;">
+        <!-- Trending -->
+        <HomeTrendingSection :items="trending" />
 
-        <div v-else class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
-          <MediaCard 
-            v-for="media in mediaList" 
-            :key="media.id" 
-            :media="media"
-            @select="handleSelect"
-            @delete="handleDelete"
-          >
-             <template #actions>
-                  <button class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded transition">Modifier</button>
-             </template>
-          </MediaCard>
-        </div>
+        <div class="section-separator" role="separator" />
+
+        <!-- Activity + Categories -->
+        <section class="bottom-grid" aria-label="Communauté et exploration">
+          <HomeActivityFeed :items="activity" />
+          <HomeCategoryGrid :categories="categories" />
+        </section>
       </div>
-    </div>
+
+    </main>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { Media } from '~~/types/media';
+const { stats, featuredItem, sideItems, trending, activity, categories } = useHomeData()
 
-
-const showForm = ref(false);
-const { data: mediaList, pending, error, refresh } = await useFetch<Media[]>('/api/media');
-
-function handleSelect(media: Media) {
-  console.log('Selected media:', media.title);
-}
-
-function handleDelete(id: string) {
-  if (!mediaList.value) return;
-  
-  if (confirm('Êtes-vous sûr de vouloir supprimer ce média ?')) {
-     mediaList.value = mediaList.value.filter(m => m.id !== id);
-  }
-}
-
-async function handleAdd(formData: any) {
-  console.log('Adding media:', formData);
-  
-  try {
-      const { data } = await useFetch('/api/media', {
-          method: 'POST',
-          body: formData
-      });
-      if (data.value && (data.value as any).success) {
-           if (mediaList.value) {
-               mediaList.value.push((data.value as any).media);
-           }
-      }
-  } catch (e) {
-      console.error('Failed to add media', e);
-  }
-}
+useSeoMeta({
+  title: 'Artiverse — Ton univers culturel centralisé',
+  description: 'Note, catalogue et partage tes films, séries, jeux et livres. Rejoins une communauté de passionnés.',
+  ogTitle: 'Artiverse',
+  ogDescription: 'Films, séries, jeux vidéo, livres — une seule plateforme.',
+})
 </script>
+
+<style scoped>
+.page { min-height: 100vh; background: var(--c-void); }
+.bottom-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; padding:28px 40px 48px; }
+@media (max-width:700px){ .bottom-grid{grid-template-columns:1fr;padding:24px 20px 40px;} }
+</style>
