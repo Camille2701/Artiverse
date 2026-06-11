@@ -19,7 +19,7 @@ const error = ref(false)
 const loading = ref(true)
 
 const statistics = ref<UserStatistics | null>(null)
-const currentView = ref<'collection' | 'statistics'>('collection')
+const currentView = ref<'collection' | 'statistics' | 'badges'>('collection')
 const selectedMediaType = ref<string | null>(null)
 
 // Collection : médias notés par l'utilisateur, groupés par type
@@ -132,6 +132,135 @@ function getMediaTypeHex(type: string): string {
   return hexes[type] || '#6366f1'
 }
 
+// --- Badge definitions ---
+interface Badge {
+  id: string
+  emoji: string
+  name: string
+  description: string
+  color: string
+  earned: boolean
+  progress?: { current: number; target: number }
+}
+
+const BADGE_DEFS = [
+  // ── Premiers pas ──────────────────────────────────────────────────────────
+  { id: 'first_rating',      emoji: '⭐', name: 'Premier pas',        description: 'Notez votre premier média',                                color: '#22c55e', check: (s: any) => s.total_ratings >= 1 },
+  { id: 'first_review',      emoji: '✍️', name: 'Critique en herbe',  description: 'Rédigez votre premier avis',                               color: '#3b82f6', check: (s: any) => s.total_reviews >= 1 },
+  { id: 'first_list',        emoji: '📋', name: 'Organisateur',       description: 'Créez votre première liste',                               color: '#06b6d4', check: (s: any) => s.total_lists >= 1 },
+
+  // ── Paliers de notes (quantité globale) ───────────────────────────────────
+  { id: 'ratings_10',        emoji: '🌟', name: 'Collectionneur',     description: 'Notez 10 médias',   color: '#f59e0b', check: (s: any) => s.total_ratings >= 10,  prog: (s: any) => ({ current: Math.min(s.total_ratings, 10),  target: 10  }) },
+  { id: 'ratings_25',        emoji: '🎯', name: 'Vingtaine',          description: 'Notez 25 médias',   color: '#fb923c', check: (s: any) => s.total_ratings >= 25,  prog: (s: any) => ({ current: Math.min(s.total_ratings, 25),  target: 25  }) },
+  { id: 'ratings_50',        emoji: '💎', name: 'Connaisseur',        description: 'Notez 50 médias',   color: '#a855f7', check: (s: any) => s.total_ratings >= 50,  prog: (s: any) => ({ current: Math.min(s.total_ratings, 50),  target: 50  }) },
+  { id: 'ratings_100',       emoji: '🏆', name: 'Centurion',          description: 'Notez 100 médias',  color: '#f59e0b', check: (s: any) => s.total_ratings >= 100, prog: (s: any) => ({ current: Math.min(s.total_ratings, 100), target: 100 }) },
+  { id: 'ratings_200',       emoji: '👑', name: 'Légende',            description: 'Notez 200 médias',  color: '#fbbf24', check: (s: any) => s.total_ratings >= 200, prog: (s: any) => ({ current: Math.min(s.total_ratings, 200), target: 200 }) },
+
+  // ── Films ─────────────────────────────────────────────────────────────────
+  { id: 'movie_5',           emoji: '🎬', name: 'Cinéphile',          description: 'Notez 5 films',    color: '#FF4757', check: (s: any) => (s.ratings_by_type?.movie?.count ?? 0) >= 5,  prog: (s: any) => ({ current: Math.min(s.ratings_by_type?.movie?.count ?? 0, 5),  target: 5  }) },
+  { id: 'movie_20',          emoji: '🎥', name: 'Grand cinéphile',    description: 'Notez 20 films',   color: '#ef4444', check: (s: any) => (s.ratings_by_type?.movie?.count ?? 0) >= 20, prog: (s: any) => ({ current: Math.min(s.ratings_by_type?.movie?.count ?? 0, 20), target: 20 }) },
+  { id: 'movie_50',          emoji: '🏛️', name: 'Cinémathèque',       description: 'Notez 50 films',   color: '#dc2626', check: (s: any) => (s.ratings_by_type?.movie?.count ?? 0) >= 50, prog: (s: any) => ({ current: Math.min(s.ratings_by_type?.movie?.count ?? 0, 50), target: 50 }) },
+
+  // ── Séries ────────────────────────────────────────────────────────────────
+  { id: 'series_5',          emoji: '📺', name: 'Sériephile',         description: 'Notez 5 séries',   color: '#9B51E0', check: (s: any) => (s.ratings_by_type?.tv_series?.count ?? 0) >= 5,  prog: (s: any) => ({ current: Math.min(s.ratings_by_type?.tv_series?.count ?? 0, 5),  target: 5  }) },
+  { id: 'series_20',         emoji: '📡', name: 'Accro aux séries',   description: 'Notez 20 séries',  color: '#7c3aed', check: (s: any) => (s.ratings_by_type?.tv_series?.count ?? 0) >= 20, prog: (s: any) => ({ current: Math.min(s.ratings_by_type?.tv_series?.count ?? 0, 20), target: 20 }) },
+  { id: 'series_50',         emoji: '🎭', name: 'Marathonien',        description: 'Notez 50 séries',  color: '#6d28d9', check: (s: any) => (s.ratings_by_type?.tv_series?.count ?? 0) >= 50, prog: (s: any) => ({ current: Math.min(s.ratings_by_type?.tv_series?.count ?? 0, 50), target: 50 }) },
+
+  // ── Jeux vidéo ────────────────────────────────────────────────────────────
+  { id: 'game_5',            emoji: '🎮', name: 'Gamer',              description: 'Notez 5 jeux vidéo',    color: '#00D2D3', check: (s: any) => (s.ratings_by_type?.video_game?.count ?? 0) >= 5,  prog: (s: any) => ({ current: Math.min(s.ratings_by_type?.video_game?.count ?? 0, 5),  target: 5  }) },
+  { id: 'game_20',           emoji: '🕹️', name: 'Hardcore gamer',     description: 'Notez 20 jeux vidéo',   color: '#0891b2', check: (s: any) => (s.ratings_by_type?.video_game?.count ?? 0) >= 20, prog: (s: any) => ({ current: Math.min(s.ratings_by_type?.video_game?.count ?? 0, 20), target: 20 }) },
+  { id: 'game_50',           emoji: '🏅', name: 'Pro gamer',          description: 'Notez 50 jeux vidéo',   color: '#0e7490', check: (s: any) => (s.ratings_by_type?.video_game?.count ?? 0) >= 50, prog: (s: any) => ({ current: Math.min(s.ratings_by_type?.video_game?.count ?? 0, 50), target: 50 }) },
+
+  // ── Livres ────────────────────────────────────────────────────────────────
+  { id: 'book_5',            emoji: '📚', name: 'Bibliophile',        description: 'Notez 5 livres',    color: '#ECCC68', check: (s: any) => (s.ratings_by_type?.book?.count ?? 0) >= 5,  prog: (s: any) => ({ current: Math.min(s.ratings_by_type?.book?.count ?? 0, 5),  target: 5  }) },
+  { id: 'book_20',           emoji: '📖', name: 'Rat de biblio',      description: 'Notez 20 livres',   color: '#ca8a04', check: (s: any) => (s.ratings_by_type?.book?.count ?? 0) >= 20, prog: (s: any) => ({ current: Math.min(s.ratings_by_type?.book?.count ?? 0, 20), target: 20 }) },
+  { id: 'book_50',           emoji: '🗝️', name: 'Archiviste',         description: 'Notez 50 livres',   color: '#a16207', check: (s: any) => (s.ratings_by_type?.book?.count ?? 0) >= 50, prog: (s: any) => ({ current: Math.min(s.ratings_by_type?.book?.count ?? 0, 50), target: 50 }) },
+
+  // ── Diversité ────────────────────────────────────────────────────────────
+  { id: 'eclectic_1',        emoji: '🌈', name: 'Éclectique',         description: 'Notez au moins 1 média de chaque type',  color: '#ec4899', check: (s: any) => ['movie','tv_series','video_game','book'].every((t: string) => (s.ratings_by_type?.[t]?.count ?? 0) >= 1) },
+  { id: 'eclectic_5',        emoji: '🌍', name: 'Omnivore',           description: 'Notez 5 médias de chaque type',           color: '#db2777', check: (s: any) => ['movie','tv_series','video_game','book'].every((t: string) => (s.ratings_by_type?.[t]?.count ?? 0) >= 5), prog: (s: any) => ({ current: Math.min(...(['movie','tv_series','video_game','book'].map((t: string) => s.ratings_by_type?.[t]?.count ?? 0))), target: 5 }) },
+
+  // ── Avis ─────────────────────────────────────────────────────────────────
+  { id: 'reviews_5',         emoji: '🏅', name: 'Critique confirmé',  description: 'Rédigez 5 avis',   color: '#6366f1', check: (s: any) => s.total_reviews >= 5,  prog: (s: any) => ({ current: Math.min(s.total_reviews, 5),  target: 5  }) },
+  { id: 'reviews_15',        emoji: '🖊️', name: 'Plume d\'or',        description: 'Rédigez 15 avis',  color: '#4f46e5', check: (s: any) => s.total_reviews >= 15, prog: (s: any) => ({ current: Math.min(s.total_reviews, 15), target: 15 }) },
+  { id: 'reviews_30',        emoji: '📝', name: 'Grand rédacteur',    description: 'Rédigez 30 avis',  color: '#4338ca', check: (s: any) => s.total_reviews >= 30, prog: (s: any) => ({ current: Math.min(s.total_reviews, 30), target: 30 }) },
+
+  // ── Listes ────────────────────────────────────────────────────────────────
+  { id: 'lists_3',           emoji: '🗂️', name: 'Curateur',           description: 'Créez 3 listes',                        color: '#0ea5e9', check: (s: any) => s.total_lists >= 3, prog: (s: any) => ({ current: Math.min(s.total_lists, 3), target: 3 }) },
+  { id: 'lists_5',           emoji: '🗃️', name: 'Gestionnaire',       description: 'Créez 5 listes',                        color: '#0284c7', check: (s: any) => s.total_lists >= 5, prog: (s: any) => ({ current: Math.min(s.total_lists, 5), target: 5 }) },
+  { id: 'list_items_20',     emoji: '📦', name: 'Grande collection',  description: 'Ajoutez 20 médias dans vos listes',      color: '#0369a1', check: (s: any) => s.total_media_in_lists >= 20,  prog: (s: any) => ({ current: Math.min(s.total_media_in_lists, 20),  target: 20  }) },
+  { id: 'list_items_100',    emoji: '🏰', name: 'Grande bibliothèque',description: 'Ajoutez 100 médias dans vos listes',     color: '#075985', check: (s: any) => s.total_media_in_lists >= 100, prog: (s: any) => ({ current: Math.min(s.total_media_in_lists, 100), target: 100 }) },
+
+  // ── Streak ────────────────────────────────────────────────────────────────
+  { id: 'streak_3',          emoji: '🔥', name: 'Sur la lancée',      description: '3 jours de connexion consécutifs',   color: '#f97316', check: (_: any, u: any) => (u?.streak_days ?? 0) >= 3 },
+  { id: 'streak_7',          emoji: '💫', name: 'Semaine parfaite',   description: '7 jours de connexion consécutifs',   color: '#f59e0b', check: (_: any, u: any) => (u?.streak_days ?? 0) >= 7  },
+  { id: 'streak_30',         emoji: '☀️', name: 'Mois de feu',        description: '30 jours de connexion consécutifs',  color: '#eab308', check: (_: any, u: any) => (u?.streak_days ?? 0) >= 30 },
+
+  // ── Niveau XP ─────────────────────────────────────────────────────────────
+  { id: 'level_2',           emoji: '🌱', name: 'Débutant',           description: 'Atteignez le niveau 2',  color: '#22c55e', check: (_: any, u: any) => (u?.level ?? 1) >= 2  },
+  { id: 'level_5',           emoji: '💪', name: 'Intermédiaire',      description: 'Atteignez le niveau 5',  color: '#3b82f6', check: (_: any, u: any) => (u?.level ?? 1) >= 5  },
+  { id: 'level_10',          emoji: '🔮', name: 'Expert',             description: 'Atteignez le niveau 10', color: '#a855f7', check: (_: any, u: any) => (u?.level ?? 1) >= 10 },
+  { id: 'level_20',          emoji: '🌌', name: 'Maître',             description: 'Atteignez le niveau 20', color: '#7c3aed', check: (_: any, u: any) => (u?.level ?? 1) >= 20 },
+
+  // ── Qualité des notes ─────────────────────────────────────────────────────
+  { id: 'high_avg',          emoji: '🎖️', name: 'Note généreuse',     description: 'Moyenne ≥ 8/10 sur 10 notes minimum',  color: '#f59e0b', check: (s: any) => s.total_ratings >= 10 && overallAvg(s) >= 8 },
+  { id: 'strict_rater',      emoji: '🧐', name: 'Critique exigeant',  description: 'Moyenne ≤ 5/10 sur 10 notes minimum',  color: '#94a3b8', check: (s: any) => s.total_ratings >= 10 && overallAvg(s) <= 5 },
+  { id: 'balanced_rater',    emoji: '⚖️', name: 'Équilibré',          description: 'Moyenne entre 6 et 7 sur 10 notes min',color: '#64748b', check: (s: any) => s.total_ratings >= 10 && overallAvg(s) > 5 && overallAvg(s) < 8 },
+
+  // ── Spéciaux ──────────────────────────────────────────────────────────────
+  { id: 'all_types_10',      emoji: '🦋', name: 'Papillon culturel',  description: 'Notez 10 médias de chaque type',     color: '#e879f9', check: (s: any) => ['movie','tv_series','video_game','book'].every((t: string) => (s.ratings_by_type?.[t]?.count ?? 0) >= 10), prog: (s: any) => ({ current: Math.min(...(['movie','tv_series','video_game','book'].map((t: string) => s.ratings_by_type?.[t]?.count ?? 0))), target: 10 }) },
+  { id: 'polyglotte',        emoji: '🔭', name: 'Explorateur',        description: 'Plus de médias notés que de jours depuis l\'inscription', color: '#0ea5e9', check: (s: any) => s.total_ratings >= 30 },
+  { id: 'top_rated_3',       emoji: '💯', name: 'Coup de cœur',       description: 'Donnez 3 notes de 10/10',             color: '#ef4444', check: (s: any) => (s.top_rated?.filter((m: any) => m.rating === 10)?.length ?? 0) >= 3 },
+]
+
+function overallAvg(s: any): number {
+  let total = 0, count = 0
+  for (const t of ['movie', 'tv_series', 'video_game', 'book']) {
+    const d = s.ratings_by_type?.[t]
+    if (d?.count) { total += d.average_score * d.count; count += d.count }
+  }
+  return count ? total / count : 0
+}
+
+const badges = computed<Badge[]>(() => {
+  const stats = statistics.value
+  if (!stats) return BADGE_DEFS.map(d => ({ ...d, earned: false }))
+  return BADGE_DEFS.map(d => ({
+    id: d.id,
+    emoji: d.emoji,
+    name: d.name,
+    description: d.description,
+    color: d.color,
+    earned: d.check(stats, user.value),
+    progress: d.prog ? d.prog(stats) : undefined,
+  }))
+})
+
+const earnedBadges = computed(() => badges.value.filter(b => b.earned))
+const lockedBadges = computed(() => badges.value.filter(b => !b.earned))
+
+// --- Activity chart (last 30 days) ---
+const activityDays = computed(() => {
+  const result: { label: string; count: number; date: string }[] = []
+  if (!statistics.value?.activity_timeline) return result
+  const today = new Date()
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(today)
+    d.setDate(d.getDate() - i)
+    const key = d.toISOString().split('T')[0]
+    result.push({
+      date: key,
+      label: d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }),
+      count: statistics.value.activity_timeline[key] ?? 0,
+    })
+  }
+  return result
+})
+
+const maxActivityCount = computed(() =>
+  Math.max(1, ...activityDays.value.map(d => d.count))
+)
+
 async function handleLogout() {
   logout()
   await navigateTo('/')
@@ -188,7 +317,12 @@ async function handleLogout() {
             />
           </div>
           <div class="flex-1">
-            <h1 class="mb-2 text-3xl font-bold text-text-primary font-display sm:text-4xl">{{ user.username }}</h1>
+            <div class="flex flex-wrap items-center gap-3 mb-2">
+              <h1 class="text-3xl font-bold text-text-primary font-display sm:text-4xl">{{ user.username }}</h1>
+              <span v-if="user.streak_days && user.streak_days >= 2" class="flex items-center gap-1 rounded-full px-3 py-1 text-sm font-semibold" style="background: rgba(249,115,22,0.15); color: #f97316; border: 1px solid rgba(249,115,22,0.3)">
+                🔥 {{ user.streak_days }} jours
+              </span>
+            </div>
             <p v-if="user.bio" class="mb-4 text-text-secondary font-body">{{ user.bio }}</p>
             <!-- XP progress bar -->
             <div class="w-full max-w-sm">
@@ -215,7 +349,7 @@ async function handleLogout() {
       </div>
 
       <!-- Statistics Section -->
-      <div v-if="statistics" class="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <div v-if="statistics" class="grid grid-cols-2 gap-4 sm:grid-cols-5">
         <div class="stat-card text-center">
           <div class="text-3xl sm:text-4xl font-extrabold text-accent font-display">{{ statistics.total_reviews }}</div>
           <div class="mt-2 text-sm font-medium text-text-secondary font-body">Avis</div>
@@ -231,6 +365,10 @@ async function handleLogout() {
         <div class="stat-card text-center">
           <div class="text-3xl sm:text-4xl font-extrabold text-accent-book font-display">{{ statistics.total_media_in_lists }}</div>
           <div class="mt-2 text-sm font-medium text-text-secondary font-body">Médias listés</div>
+        </div>
+        <div class="stat-card text-center col-span-2 sm:col-span-1">
+          <div class="text-3xl sm:text-4xl font-extrabold font-display" style="color: #f59e0b">{{ earnedBadges.length }}/{{ badges.length }}</div>
+          <div class="mt-2 text-sm font-medium text-text-secondary font-body">Succès</div>
         </div>
       </div>
 
@@ -263,6 +401,17 @@ async function handleLogout() {
               ]"
             >
               Statistiques
+            </button>
+            <button
+              @click="currentView = 'badges'"
+              :class="[
+                'px-4 py-2 rounded-md text-sm font-medium transition-all duration-200',
+                currentView === 'badges'
+                  ? 'bg-accent text-white shadow-lg'
+                  : 'text-text-secondary hover:text-text-primary hover:bg-bg-secondary'
+              ]"
+            >
+              Succès
             </button>
           </div>
         </div>
@@ -363,6 +512,117 @@ async function handleLogout() {
               </div>
               <div v-if="Object.keys(statistics.ratings_by_type).length === 0" class="text-sm text-text-tertiary font-body italic">
                 Aucune note pour le moment
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Activity Timeline -->
+        <div class="glass rounded-xl p-6 border border-border-color">
+          <h3 class="text-xl font-bold text-text-primary mb-4 font-display">Activité (30 derniers jours)</h3>
+          <div v-if="activityDays.some(d => d.count > 0)" class="flex items-end gap-1 h-24">
+            <div
+              v-for="day in activityDays"
+              :key="day.date"
+              class="flex-1 flex flex-col items-center justify-end"
+              :title="`${day.label} : ${day.count} action(s)`"
+            >
+              <div
+                class="w-full rounded-t-sm transition-all duration-300"
+                :style="{
+                  height: `${Math.max(4, (day.count / maxActivityCount) * 80)}px`,
+                  background: day.count > 0
+                    ? 'linear-gradient(to top, #3b82f6, #a855f7)'
+                    : 'rgba(255,255,255,0.05)'
+                }"
+              ></div>
+            </div>
+          </div>
+          <div v-else class="flex h-24 items-center justify-center text-sm text-text-tertiary font-body italic">
+            Aucune activité ces 30 derniers jours
+          </div>
+          <div class="mt-2 flex justify-between text-xs text-text-tertiary font-body">
+            <span>{{ activityDays[0]?.label }}</span>
+            <span>Aujourd'hui</span>
+          </div>
+        </div>
+
+        <!-- Top Rated -->
+        <div v-if="statistics.top_rated?.length" class="glass rounded-xl p-6 border border-border-color">
+          <h3 class="text-xl font-bold text-text-primary mb-4 font-display">Vos coups de cœur</h3>
+          <div class="space-y-3">
+            <div
+              v-for="item in statistics.top_rated"
+              :key="item.media_id"
+              class="flex items-center gap-3"
+            >
+              <NuxtLink :to="`/media/${item.media_id}`" class="flex items-center gap-3 flex-1 min-w-0 group">
+                <div
+                  class="h-10 w-10 rounded-lg flex items-center justify-center shrink-0 text-lg font-bold"
+                  :style="{ background: getMediaTypeHex(item.media_type) + '22', color: getMediaTypeHex(item.media_type) }"
+                >
+                  {{ item.media_type === 'movie' ? '🎬' : item.media_type === 'tv_series' ? '📺' : item.media_type === 'video_game' ? '🎮' : '📚' }}
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="text-sm font-semibold text-text-primary truncate group-hover:text-accent transition-colors">{{ item.title }}</div>
+                  <div class="text-xs text-text-tertiary">{{ getMediaTypeLabel(item.media_type) }}</div>
+                </div>
+              </NuxtLink>
+              <div class="shrink-0 rounded-lg px-2.5 py-1 text-sm font-bold" style="background: rgba(245,158,11,0.15); color: #f59e0b">
+                ★ {{ item.rating }}/10
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Badges / Succès View -->
+      <div v-if="currentView === 'badges'" class="space-y-6">
+        <!-- Earned badges -->
+        <div class="glass rounded-xl p-6 border border-border-color">
+          <h3 class="text-xl font-bold text-text-primary mb-1 font-display">
+            Succès débloqués
+            <span class="ml-2 text-base font-semibold" style="color: #f59e0b">{{ earnedBadges.length }}/{{ badges.length }}</span>
+          </h3>
+          <p class="text-sm text-text-tertiary mb-5 font-body">Vos accomplissements sur Artiverse</p>
+          <div v-if="earnedBadges.length" class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            <div
+              v-for="badge in earnedBadges"
+              :key="badge.id"
+              class="rounded-xl p-4 text-center transition-all duration-200 hover:scale-105"
+              :style="{ background: badge.color + '18', border: `1px solid ${badge.color}44` }"
+            >
+              <div class="text-3xl mb-2">{{ badge.emoji }}</div>
+              <div class="text-sm font-bold text-text-primary font-display">{{ badge.name }}</div>
+              <div class="text-xs text-text-tertiary mt-1 font-body">{{ badge.description }}</div>
+            </div>
+          </div>
+          <div v-else class="py-8 text-center text-sm text-text-tertiary font-body italic">
+            Commencez à noter des médias pour débloquer vos premiers succès !
+          </div>
+        </div>
+
+        <!-- Locked badges -->
+        <div v-if="lockedBadges.length" class="glass rounded-xl p-6 border border-border-color">
+          <h3 class="text-xl font-bold text-text-primary mb-5 font-display">Succès à débloquer</h3>
+          <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            <div
+              v-for="badge in lockedBadges"
+              :key="badge.id"
+              class="rounded-xl p-4 text-center opacity-50"
+              style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08)"
+            >
+              <div class="text-3xl mb-2 grayscale">{{ badge.emoji }}</div>
+              <div class="text-sm font-bold text-text-primary font-display">{{ badge.name }}</div>
+              <div class="text-xs text-text-tertiary mt-1 font-body">{{ badge.description }}</div>
+              <div v-if="badge.progress" class="mt-2">
+                <div class="h-1.5 w-full rounded-full overflow-hidden" style="background: rgba(255,255,255,0.08)">
+                  <div
+                    class="h-full rounded-full"
+                    style="background: rgba(255,255,255,0.3)"
+                    :style="{ width: `${(badge.progress.current / badge.progress.target) * 100}%` }"
+                  ></div>
+                </div>
+                <div class="text-xs text-text-tertiary mt-1 font-body">{{ badge.progress.current }}/{{ badge.progress.target }}</div>
               </div>
             </div>
           </div>

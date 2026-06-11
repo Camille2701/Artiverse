@@ -37,9 +37,9 @@ async function handleLogout() {
               class="inline-flex items-center rounded-md px-3 py-2 text-sm font-medium text-gray-500 transition-colors hover:bg-gray-100 hover:text-accent dark:text-text-secondary dark:hover:bg-bg-tertiary dark:hover:text-accent">
               Mes listes
             </NuxtLink>
-            <NuxtLink v-if="isAuthenticated" to="/badges"
+            <NuxtLink v-if="isAuthenticated" to="/leaderboard"
               class="inline-flex items-center rounded-md px-3 py-2 text-sm font-medium text-gray-500 transition-colors hover:bg-gray-100 hover:text-accent dark:text-text-secondary dark:hover:bg-bg-tertiary dark:hover:text-accent">
-              Badges
+              🏆 Classement
             </NuxtLink>
             <NuxtLink v-if="isAuthenticated" to="/feed"
               class="inline-flex items-center rounded-md px-3 py-2 text-sm font-medium text-gray-500 transition-colors hover:bg-gray-100 hover:text-accent dark:text-text-secondary dark:hover:bg-bg-tertiary dark:hover:text-accent">
@@ -113,9 +113,9 @@ async function handleLogout() {
             class="block rounded-lg px-3 py-2.5 text-base font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-accent dark:text-text-secondary dark:hover:bg-bg-tertiary dark:hover:text-accent">
             Mes listes
           </NuxtLink>
-          <NuxtLink to="/badges" @click="isMenuOpen = false"
+          <NuxtLink to="/leaderboard" @click="isMenuOpen = false"
             class="block rounded-lg px-3 py-2.5 text-base font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-accent dark:text-text-secondary dark:hover:bg-bg-tertiary dark:hover:text-accent">
-            Badges
+            🏆 Classement
           </NuxtLink>
           <NuxtLink to="/feed" @click="isMenuOpen = false"
             class="block rounded-lg px-3 py-2.5 text-base font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-accent dark:text-text-secondary dark:hover:bg-bg-tertiary dark:hover:text-accent">
