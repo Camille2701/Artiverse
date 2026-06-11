@@ -7,10 +7,11 @@ class TestUsers:
 
     async def test_get_user_profile(self, client, test_user, auth_headers):
         """Test getting user profile."""
-        response = await client.get(f"/api/v1/users/{test_user.id}", headers=auth_headers)
+        user_id = test_user.id
+        response = await client.get(f"/api/v1/users/{user_id}", headers=auth_headers)
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
-        assert data["id"] == test_user.id
+        assert data["id"] == user_id
         assert data["username"] == test_user.username
         assert data["email"] == test_user.email
 

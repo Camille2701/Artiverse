@@ -33,8 +33,9 @@ class TestBadges:
 
     async def test_get_user_badges(self, client, test_user, auth_headers):
         """Test getting badges for a specific user."""
+        user_id = test_user.id
         response = await client.get(
-            f"/api/v1/badges/users/{test_user.id}",
+            f"/api/v1/badges/users/{user_id}",
             headers=auth_headers
         )
         assert response.status_code == status.HTTP_200_OK
@@ -57,8 +58,9 @@ class TestStatistics:
 
     async def test_get_user_statistics(self, client, test_user, auth_headers):
         """Test getting statistics for a specific user."""
+        user_id = test_user.id
         response = await client.get(
-            f"/api/v1/statistics/users/{test_user.id}",
+            f"/api/v1/statistics/users/{user_id}",
             headers=auth_headers
         )
         assert response.status_code == status.HTTP_200_OK
@@ -81,29 +83,32 @@ class TestSocial:
 
     async def test_follow_user(self, client, test_user, test_user_2, auth_headers):
         """Test following a user."""
+        user_2_id = test_user_2.id
         response = await client.post(
-            f"/api/v1/social/follow/{test_user_2.id}",
+            f"/api/v1/social/follow/{user_2_id}",
             headers=auth_headers
         )
         assert response.status_code in [status.HTTP_200_OK, status.HTTP_201_CREATED]
 
     async def test_unfollow_user(self, client, test_user, test_user_2, auth_headers):
         """Test unfollowing a user."""
+        user_2_id = test_user_2.id
         await client.post(
-            f"/api/v1/social/follow/{test_user_2.id}",
+            f"/api/v1/social/follow/{user_2_id}",
             headers=auth_headers
         )
 
         response = await client.delete(
-            f"/api/v1/social/follow/{test_user_2.id}",
+            f"/api/v1/social/follow/{user_2_id}",
             headers=auth_headers
         )
         assert response.status_code == status.HTTP_200_OK
 
     async def test_get_followers(self, client, test_user, auth_headers):
         """Test getting a user's followers list."""
+        user_id = test_user.id
         response = await client.get(
-            f"/api/v1/social/followers/{test_user.id}",
+            f"/api/v1/social/followers/{user_id}",
             headers=auth_headers
         )
         assert response.status_code == status.HTTP_200_OK
@@ -112,8 +117,9 @@ class TestSocial:
 
     async def test_get_following(self, client, test_user, auth_headers):
         """Test getting a user's following list."""
+        user_id = test_user.id
         response = await client.get(
-            f"/api/v1/social/following/{test_user.id}",
+            f"/api/v1/social/following/{user_id}",
             headers=auth_headers
         )
         assert response.status_code == status.HTTP_200_OK
