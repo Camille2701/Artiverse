@@ -1,13 +1,17 @@
 <template>
-  <main class="placeholder-page">
-    <h1>Livres</h1>
-    <p>Section en construction.</p>
-    <NuxtLink to="/">Retour à l'accueil</NuxtLink>
-  </main>
+  <MediaCatalogPage
+    title="Catalogue des livres"
+    eyebrow="Littérature"
+    description="Découvre les livres présents dans Artiverse, des classiques incontournables aux titres les plus récents."
+    :items="Books"
+  />
 </template>
 
-<style scoped>
-.placeholder-page{min-height:100vh;padding:40px;color:var(--c-text);background:var(--c-void);font-family:var(--font-body)}
-h1{font-family:var(--font-display);margin-bottom:12px}
-a{display:inline-block;margin-top:16px;color:var(--c-gold)}
-</style>
+<script setup lang="ts">
+const { Books } = useBookData()
+
+useSeoMeta({
+  title: 'Artiverse — Livres',
+  description: 'Catalogue des livres Artiverse.',
+})
+</script>
