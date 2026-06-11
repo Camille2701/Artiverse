@@ -17,7 +17,7 @@ export interface MediaItem {
   score: number
   tags: string[]
   nbcritiques? : number
-  critiques: number
+  critiques?: Critique[]
   rank?: number
   description?: string
   duration?: string

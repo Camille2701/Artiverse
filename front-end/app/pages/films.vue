@@ -1,13 +1,17 @@
 <template>
-  <main class="placeholder-page">
-    <h1>Films</h1>
-    <p>Section en construction.</p>
-    <NuxtLink to="/">Retour à l'accueil</NuxtLink>
-  </main>
+  <MediaCatalogPage
+    title="Catalogue des films"
+    eyebrow="Cinéma"
+    description="Retrouve ici la sélection des films Artiverse, avec leurs notes, leurs genres et un accès direct à chaque fiche média."
+    :items="Movies"
+  />
 </template>
 
-<style scoped>
-.placeholder-page{min-height:100vh;padding:40px;color:var(--c-text);background:var(--c-void);font-family:var(--font-body)}
-h1{font-family:var(--font-display);margin-bottom:12px}
-a{display:inline-block;margin-top:16px;color:var(--c-gold)}
-</style>
+<script setup lang="ts">
+const { Movies } = useMovieData()
+
+useSeoMeta({
+  title: 'Artiverse — Films',
+  description: 'Catalogue des films Artiverse.',
+})
+</script>
