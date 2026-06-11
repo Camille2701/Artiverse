@@ -6,7 +6,6 @@ export const useSeriesData = () => {
   const Series: MediaItem[] = [
     {
       id: 22,
-      rank: 1,
       imgLink: "house_of_the_dragon.png",
       imgAlt: "House of the Dragon",
       title: "House of the Dragon",
@@ -14,6 +13,8 @@ export const useSeriesData = () => {
       type: "serie",
       score: 9.1,
       tags: ["Fantasy", "Drame"],
+      director: "Ryan Condal",
+      description: "La série raconte la guerre civile interne à la maison Targaryen, des années avant Game of Thrones. Elle explore les luttes de pouvoir, les héritages familiaux et les conséquences destructrices des ambitions politiques.",
       critiques: [
         {
           id: 23,
@@ -33,7 +34,6 @@ export const useSeriesData = () => {
     },
     {
       id: 23,
-      rank: 2,
       imgLink: "the_boys.png",
       imgAlt: "The Boys",
       title: "The Boys",
@@ -41,6 +41,8 @@ export const useSeriesData = () => {
       type: "serie",
       score: 9.3,
       tags: ["Action", "Satire"],
+      director: "Eric Kripke",
+      description: "Dans un monde où les super-héros sont contrôlés par des corporations, un groupe clandestin tente de révéler leurs abus et leur corruption. La série mélange violence, satire et critique du pouvoir médiatique.",
       critiques: [
         {
           id: 25,
@@ -60,7 +62,6 @@ export const useSeriesData = () => {
     },
     {
       id: 24,
-      rank: 3,
       imgLink: "stranger_things.png",
       imgAlt: "Stranger Things",
       title: "Stranger Things",
@@ -68,6 +69,8 @@ export const useSeriesData = () => {
       type: "serie",
       score: 8.9,
       tags: ["Science-Fiction", "Horreur"],
+      director: "The Duffer Brothers",
+      description: "Dans une petite ville des années 80, la disparition d’un enfant révèle l’existence d’un monde parallèle et de phénomènes surnaturels. La série mêle horreur, science-fiction et nostalgie.",
       critiques: [
         {
           id: 27,
@@ -80,7 +83,6 @@ export const useSeriesData = () => {
     },
     {
       id: 25,
-      rank: 4,
       imgLink: "breaking_bad.png",
       imgAlt: "Breaking Bad",
       title: "Breaking Bad",
@@ -88,6 +90,8 @@ export const useSeriesData = () => {
       type: "serie",
       score: 9.8,
       tags: ["Crime", "Drame"],
+      director: "Vince Gilligan",
+      description: "Un professeur de chimie atteint d’un cancer se lance dans la fabrication de drogue pour assurer l’avenir de sa famille. Il glisse progressivement dans un monde criminel où son identité change complètement.",
       critiques: [
         {
           id: 28,
@@ -107,7 +111,6 @@ export const useSeriesData = () => {
     },
     {
       id: 26,
-      rank: 5,
       imgLink: "dark.png",
       imgAlt: "Dark",
       title: "Dark",
@@ -115,6 +118,8 @@ export const useSeriesData = () => {
       type: "serie",
       score: 9.6,
       tags: ["Science-Fiction", "Thriller"],
+      director: "Baran bo Odar, Jantje Friese",
+      description: "Plusieurs familles sont liées par des événements qui traversent différentes périodes temporelles. La série explore le temps, le libre arbitre et les paradoxes à travers une intrigue complexe et structurée.",
       critiques: [
         {
           id: 30,
@@ -127,7 +132,6 @@ export const useSeriesData = () => {
     },
     {
       id: 27,
-      rank: 6,
       imgLink: "the_crown.png",
       imgAlt: "The Crown",
       title: "The Crown",
@@ -135,6 +139,8 @@ export const useSeriesData = () => {
       type: "serie",
       score: 8.7,
       tags: ["Drame", "Historique"],
+      director: "Peter Morgan",
+      description: "La série retrace le règne d’Elizabeth II et les défis politiques, personnels et institutionnels auxquels elle fait face. Elle montre l’évolution de la monarchie britannique dans un monde en mutation.",
       critiques: [
         {
           id: 31,
@@ -154,7 +160,6 @@ export const useSeriesData = () => {
     },
     {
       id: 28,
-      rank: 7,
       imgLink: "arcane.png",
       imgAlt: "Arcane",
       title: "Arcane",
@@ -162,6 +167,8 @@ export const useSeriesData = () => {
       type: "serie",
       score: 9.7,
       tags: ["Animation", "Action"],
+      director: "Christian Linke, Alex Yee",
+      description: "L’histoire suit les tensions entre la ville riche de Piltover et les bas-fonds de Zaun à travers le destin de deux sœurs. La série combine émotion, action et une direction artistique unique inspirée de l’univers de League of Legends.",
       critiques: [
         {
           id: 33,

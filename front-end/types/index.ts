@@ -22,6 +22,7 @@ export interface MediaItem {
   description?: string
   duration?: string
   director?: string
+  author?: string
 }
 
 export interface Critique {

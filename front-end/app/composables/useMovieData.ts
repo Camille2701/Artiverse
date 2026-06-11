@@ -6,7 +6,6 @@ export const useMovieData = () => {
   const Movies: MediaItem[] = [
     {
       id: 15,
-      rank: 2,
       imgLink: "dune.png",
       imgAlt: "Affiche de Dune Part Two",
       title: "Dune: Part Two",
@@ -14,6 +13,8 @@ export const useMovieData = () => {
       type: "film",
       score: 9.3,
       tags: ["Science-Fiction", "Épopée"],
+      director: "Denis Villeneuve",
+      description: "Paul Atreides poursuit son ascension sur la planète Arrakis en s’alliant aux Fremen pour renverser les forces en place. Le film explore le pouvoir, la religion et le destin à travers une mise en scène massive, une photographie immersive et une tension politique permanente.",
       critiques: [
         {
           id: 13,
@@ -26,7 +27,6 @@ export const useMovieData = () => {
     },
     {
       id: 16,
-      rank: 1,
       imgLink: "oppenheimer.png",
       imgAlt: "Affiche de Oppenheimer",
       title: "Oppenheimer",
@@ -34,6 +34,8 @@ export const useMovieData = () => {
       type: "film",
       score: 9.5,
       tags: ["Drame", "Historique"],
+      director: "Christopher Nolan",
+      description: "Le film retrace la vie de J. Robert Oppenheimer et son rôle dans le développement de la bombe atomique. Il explore les dilemmes moraux, les conséquences scientifiques et politiques de cette invention, dans une narration non linéaire centrée sur la culpabilité et la responsabilité.",
       critiques: [
         {
           id: 14,
@@ -53,7 +55,6 @@ export const useMovieData = () => {
     },
     {
       id: 17,
-      rank: 3,
       imgLink: "killers_of_the_flower_moon.png",
       imgAlt: "Affiche de Killers of the Flower Moon",
       title: "Killers of the Flower Moon",
@@ -61,6 +62,8 @@ export const useMovieData = () => {
       type: "film",
       score: 8.8,
       tags: ["Crime", "Drame"],
+      director: "Martin Scorsese",
+      description: "L’histoire vraie d’une série de meurtres visant la communauté Osage après la découverte de pétrole sur leurs terres. Le film met en lumière la corruption, la violence systémique et l’exploitation, dans une fresque lente mais profondément marquante.",
       critiques: [
         {
           id: 16,
@@ -73,7 +76,6 @@ export const useMovieData = () => {
     },
     {
       id: 18,
-      rank: 4,
       imgLink: "barbie.png",
       imgAlt: "Affiche du film Barbie",
       title: "Barbie",
@@ -81,6 +83,8 @@ export const useMovieData = () => {
       type: "film",
       score: 8.2,
       tags: ["Comédie", "Satire"],
+      director: "Greta Gerwig",
+      description: "Une satire moderne qui utilise l’univers de Barbie pour questionner les normes sociales, les rôles de genre et la quête d’identité. Le film mélange humour, critique sociale et esthétique très stylisée pour proposer une lecture à plusieurs niveaux.",
       critiques: [
         {
           id: 17,
@@ -100,7 +104,6 @@ export const useMovieData = () => {
     },
     {
       id: 19,
-      rank: 5,
       imgLink: "spider_man_across.png",
       imgAlt: "Affiche Spider-Man Across the Spider-Verse",
       title: "Spider-Man: Across the Spider-Verse",
@@ -108,6 +111,8 @@ export const useMovieData = () => {
       type: "film",
       score: 9.4,
       tags: ["Animation", "Action"],
+      director: "Joaquim Dos Santos, Kemp Powers, Justin K. Thompson",
+      description: "Miles Morales est projeté à travers le multivers et découvre des versions alternatives de Spider-Man. Le film explore les notions de destin, de choix et d’identité avec une animation innovante et extrêmement dynamique.",
       critiques: [
         {
           id: 19,
@@ -120,7 +125,6 @@ export const useMovieData = () => {
     },
     {
       id: 20,
-      rank: 6,
       imgLink: "the_batman.png",
       imgAlt: "Affiche The Batman",
       title: "The Batman",
@@ -128,6 +132,8 @@ export const useMovieData = () => {
       type: "film",
       score: 8.9,
       tags: ["Action", "Thriller"],
+      director: "Matt Reeves",
+      description: "Batman débute ses premières années de lutte contre le crime à Gotham, confronté à une enquête complexe menée par le Riddler. Le film adopte une approche plus détective et sombre du personnage, centrée sur la psychologie et la corruption de la ville.",
       critiques: [
         {
           id: 20,
@@ -147,7 +153,6 @@ export const useMovieData = () => {
     },
     {
       id: 21,
-      rank: 7,
       imgLink: "parasite.png",
       imgAlt: "Affiche Parasite",
       title: "Parasite",
@@ -155,6 +160,8 @@ export const useMovieData = () => {
       type: "film",
       score: 9.6,
       tags: ["Thriller", "Drame"],
+      director: "Bong Joon-ho",
+      description: "Deux familles issues de classes sociales opposées voient leurs destins s’entremêler dans une spirale de manipulation et de tension. Le film est une critique puissante des inégalités sociales, mêlant thriller, drame et satire.",
       critiques: [
         {
           id: 22,

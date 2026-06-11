@@ -6,7 +6,6 @@ export const useBookData = () => {
   const Books: MediaItem[] = [
     {
       id: 29,
-      rank: 1,
       imgLink: "dune_book.png",
       imgAlt: "Couverture Dune",
       title: "Dune",
@@ -14,6 +13,8 @@ export const useBookData = () => {
       type: "livre",
       score: 9.4,
       tags: ["Science-Fiction", "Classique"],
+      author: "Frank Herbert",
+        description: "Dans un futur lointain, Paul Atreides se retrouve au centre d’un conflit galactique autour de la planète Arrakis et de son épice. Le roman explore la politique, la religion, l’écologie et le destin dans un univers extrêmement détaillé.",
       critiques: [
         {
           id: 35,
@@ -33,7 +34,6 @@ export const useBookData = () => {
     },
     {
       id: 30,
-      rank: 2,
       imgLink: "harry_potter.png",
       imgAlt: "Harry Potter",
       title: "Harry Potter à l'école des sorciers",
@@ -41,6 +41,8 @@ export const useBookData = () => {
       type: "livre",
       score: 9.0,
       tags: ["Fantasy", "Jeunesse"],
+      author: "J.K. Rowling",
+        description: "Harry découvre à 11 ans qu’il est un sorcier et intègre l’école de Poudlard. Il y découvre un monde magique, de nouveaux amis et les premières traces d’un danger qui menace son existence.",
       critiques: [
         {
           id: 37,
@@ -53,7 +55,6 @@ export const useBookData = () => {
     },
     {
       id: 31,
-      rank: 3,
       imgLink: "1984.png",
       imgAlt: "1984",
       title: "1984",
@@ -61,6 +62,8 @@ export const useBookData = () => {
       type: "livre",
       score: 9.5,
       tags: ["Dystopie", "Classique"],
+      author: "George Orwell",
+        description: "Dans un régime totalitaire, chaque individu est surveillé en permanence et la vérité est manipulée par le pouvoir. Le roman décrit une société où la liberté de pensée est presque inexistante.",
       critiques: [
         {
           id: 38,
@@ -80,7 +83,6 @@ export const useBookData = () => {
     },
     {
       id: 32,
-      rank: 4,
       imgLink: "le_petit_prince.png",
       imgAlt: "Le Petit Prince",
       title: "Le Petit Prince",
@@ -88,6 +90,8 @@ export const useBookData = () => {
       type: "livre",
       score: 9.6,
       tags: ["Poétique", "Philosophique"],
+      author: "Antoine de Saint-Exupéry",
+        description: "Un pilote rencontre un jeune prince venu d’une autre planète qui lui raconte ses voyages et ses réflexions sur la vie. Le récit aborde des thèmes comme l’amitié, l’amour et la vision du monde à travers un regard innocent.",
       critiques: [
         {
           id: 40,
@@ -100,7 +104,6 @@ export const useBookData = () => {
     },
     {
       id: 33,
-      rank: 5,
       imgLink: "the_hobbit.png",
       imgAlt: "Le Hobbit",
       title: "Le Hobbit",
@@ -108,6 +111,8 @@ export const useBookData = () => {
       type: "livre",
       score: 9.2,
       tags: ["Fantasy", "Aventure"],
+      author: "J.R.R. Tolkien",
+        description: "Bilbo Baggins est entraîné dans une aventure inattendue pour aider des nains à reprendre leur royaume volé par un dragon. Le récit mêle exploration, magie et croissance personnelle.",
       critiques: [
         {
           id: 41,
@@ -120,7 +125,6 @@ export const useBookData = () => {
     },
     {
       id: 34,
-      rank: 6,
       imgLink: "sapiens.png",
       imgAlt: "Sapiens",
       title: "Sapiens",
@@ -128,6 +132,8 @@ export const useBookData = () => {
       type: "livre",
       score: 9.1,
       tags: ["Essai", "Histoire"],
+      author: "Yuval Noah Harari",
+        description: "L’auteur retrace l’histoire de l’humanité depuis les premiers Homo sapiens jusqu’à la société moderne. Il analyse les grandes révolutions qui ont façonné notre monde : cognitive, agricole et scientifique.",
       critiques: [
         {
           id: 42,
@@ -147,7 +153,6 @@ export const useBookData = () => {
     },
     {
       id: 35,
-      rank: 7,
       imgLink: "atomic_habits.png",
       imgAlt: "Atomic Habits",
       title: "Atomic Habits",
@@ -155,6 +160,8 @@ export const useBookData = () => {
       type: "livre",
       score: 8.9,
       tags: ["Développement personnel"],
+      author: "James Clear",
+        description: "Le livre explique comment de petites habitudes quotidiennes peuvent transformer durablement une vie. Il propose une méthode concrète pour améliorer sa discipline, sa productivité et ses objectifs personnels.",
       critiques: [
         {
           id: 44,

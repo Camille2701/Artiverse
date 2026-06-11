@@ -4,12 +4,14 @@ export const useGameData = () => {
     const { users } = useUserData()
     const Games: MediaItem[] = [
         {
-        id: 6, rank: 2,
+        id: 6,
         imgLink: "black_myth_wukong.png",
         imgAlt:"Cover du jeu Back Myth: Wukong",
         title: 'Black Myth: Wukong',
         year: 2024, type: 'jeu', score: 9.2,
         tags: ['Action RPG', 'Mythologie'],
+        director: "Game Science",
+        description: "Action RPG inspiré de la mythologie chinoise, où tu incarnes une figure proche du Roi Singe dans un monde rempli de divinités, de créatures et de combats exigeants. Le jeu se distingue par son système de combat technique, ses boss spectaculaires et une direction artistique très cinématographique qui mélange folklore et fantasy sombre.",
         critiques: [
             {
                 id: 1,
@@ -22,7 +24,6 @@ export const useGameData = () => {
         },
         {
         id: 9,
-        rank: 1,
         imgLink: "astro_bot.png",
         imgAlt: "Cover du jeu Astro Bot",
         title: "Astro Bot",
@@ -30,6 +31,8 @@ export const useGameData = () => {
         type: "jeu",
         score: 9.5,
         tags: ["Plateforme", "Aventure"],
+        director: "Team Asobi",
+        description: "Jeu de plateforme 3D centré sur l’exploration et la créativité, où Astro traverse des mondes variés remplis de puzzles, d’ennemis et de mécaniques innovantes. Le gameplay mise sur la précision, la fluidité et une mise en scène très joyeuse et accessible.",
         critiques: [
             {
             id: 1,
@@ -49,7 +52,6 @@ export const useGameData = () => {
         },
         {
         id: 10,
-        rank: 2,
         imgLink: "stellar_blade.png",
         imgAlt: "Cover du jeu Stellar Blade",
         title: "Stellar Blade",
@@ -57,6 +59,8 @@ export const useGameData = () => {
         type: "jeu",
         score: 8.8,
         tags: ["Action", "Hack'n Slash"],
+        director: "Shift Up",
+        description: "Action hack’n slash futuriste dans un monde post-apocalyptique, où le joueur incarne une combattante affrontant des créatures mécaniques. Le jeu se distingue par son système de combat rapide, son esthétique sci-fi et sa narration centrée sur la survie humaine.",
         critiques: [
             {
             id: 3,
@@ -76,7 +80,6 @@ export const useGameData = () => {
         },
         {
         id: 11,
-        rank: 3,
         imgLink: "helldivers_2.png",
         imgAlt: "Cover du jeu Helldivers 2",
         title: "Helldivers 2",
@@ -84,6 +87,8 @@ export const useGameData = () => {
         type: "jeu",
         score: 9.1,
         tags: ["Coop", "TPS"],
+        director: "Arrowhead Game Studios",
+        description: "Shooter coopératif en vue troisième personne où des escouades de soldats combattent des forces extraterrestres pour “la démocratie galactique”. Le jeu repose sur le chaos contrôlé, le tir allié dangereux et une forte dimension multijoueur stratégique.",
         critiques: [
             {
             id: 5,
@@ -110,7 +115,6 @@ export const useGameData = () => {
         },
         {
         id: 12,
-        rank: 4,
         imgLink: "dragon_age_veilguard.png",
         imgAlt: "Cover du jeu Dragon Age The Veilguard",
         title: "Dragon Age: The Veilguard",
@@ -118,6 +122,8 @@ export const useGameData = () => {
         type: "jeu",
         score: 8.3,
         tags: ["RPG", "Fantasy"],
+        director: "BioWare",
+        description: "RPG narratif dans un univers fantasy où le joueur dirige un groupe de héros confrontés à des forces mystiques menaçant le monde. Le jeu met l’accent sur les choix, les relations entre personnages et une histoire fortement cinématographique.",
         critiques: [
             {
             id: 8,
@@ -130,7 +136,6 @@ export const useGameData = () => {
         },
         {
         id: 13,
-        rank: 5,
         imgLink: "space_marine_2.png",
         imgAlt: "Cover du jeu Warhammer 40K Space Marine 2",
         title: "Warhammer 40,000: Space Marine 2",
@@ -138,6 +143,8 @@ export const useGameData = () => {
         type: "jeu",
         score: 8.9,
         tags: ["Action", "TPS"],
+        director: "Saber Interactive",
+        description: "Shooter brutal dans l’univers Warhammer 40K où le joueur incarne un Space Marine surpuissant combattant des hordes alien. Le gameplay est centré sur l’action intense, le combat au corps à corps et une mise en scène massive et spectaculaire.",
         critiques: [
             {
             id: 9,
@@ -157,7 +164,6 @@ export const useGameData = () => {
         },
         {
         id: 14,
-        rank: 6,
         imgLink: "silent_hill_2.png",
         imgAlt: "Cover du jeu Silent Hill 2 Remake",
         title: "Silent Hill 2 Remake",
@@ -165,6 +171,8 @@ export const useGameData = () => {
         type: "jeu",
         score: 9.0,
         tags: ["Horreur", "Survie"],
+        director: "Bloober Team",
+        description: "Remake du classique du survival horror, plongeant le joueur dans une ville brumeuse remplie de manifestations psychologiques et de créatures symboliques. Le jeu met l’accent sur la tension, l’exploration et une narration profondément psychologique.",
         critiques: [
             {
             id: 11,
