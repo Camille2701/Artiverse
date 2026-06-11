@@ -65,7 +65,7 @@ class TMDBImporter:
 
     def get_popular_movies(self, limit: int = 50) -> List[dict]:
         """Get popular movies from TMDb."""
-        movies = []
+        movies: List[dict] = []
         page = 1
 
         while len(movies) < limit:
@@ -82,7 +82,7 @@ class TMDBImporter:
 
     def get_popular_tv_shows(self, limit: int = 50) -> List[dict]:
         """Get popular TV shows from TMDb."""
-        shows = []
+        shows: List[dict] = []
         page = 1
 
         while len(shows) < limit:
@@ -199,7 +199,7 @@ class RAWGImporter:
 
     def get_popular_games(self, limit: int = 50) -> List[dict]:
         """Get popular games from RAWG."""
-        games = []
+        games: List[dict] = []
         page = 1
 
         while len(games) < limit:
