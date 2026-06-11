@@ -13,6 +13,7 @@ useHead({
 const { user: currentUser, isAuthenticated, logout } = useAuth()
 const { getMyStatistics } = useStatistics()
 const { getUserRatings } = useRatings()
+const { isDark } = useTheme()
 
 const user = ref<User | null>(null)
 const error = ref(false)
@@ -331,7 +332,7 @@ async function handleLogout() {
                 <span>{{ user.experience_points }} / {{ 100 * user.level ** 2 }} XP</span>
                 <span class="font-semibold text-text-secondary">Niv. {{ user.level + 1 }}</span>
               </div>
-              <div class="h-2.5 w-full rounded-full overflow-hidden" style="background: rgba(255,255,255,0.08)">
+              <div class="h-2.5 w-full rounded-full overflow-hidden" :style="{ background: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(26,24,32,0.08)' }">
                 <div
                   class="h-full rounded-full transition-all duration-500"
                   style="background: linear-gradient(90deg, #3b82f6, #a855f7)"
@@ -532,7 +533,7 @@ async function handleLogout() {
                   height: `${Math.max(4, (day.count / maxActivityCount) * 80)}px`,
                   background: day.count > 0
                     ? 'linear-gradient(to top, #3b82f6, #a855f7)'
-                    : 'rgba(255,255,255,0.05)'
+                    : (isDark ? 'rgba(255,255,255,0.05)' : 'rgba(26,24,32,0.07)')
                 }"
               ></div>
             </div>
@@ -609,17 +610,16 @@ async function handleLogout() {
               v-for="badge in lockedBadges"
               :key="badge.id"
               class="rounded-xl p-4 text-center opacity-50"
-              style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08)"
+              :style="{ background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(26,24,32,0.03)', border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(26,24,32,0.08)' }"
             >
               <div class="text-3xl mb-2 grayscale">{{ badge.emoji }}</div>
               <div class="text-sm font-bold text-text-primary font-display">{{ badge.name }}</div>
               <div class="text-xs text-text-tertiary mt-1 font-body">{{ badge.description }}</div>
               <div v-if="badge.progress" class="mt-2">
-                <div class="h-1.5 w-full rounded-full overflow-hidden" style="background: rgba(255,255,255,0.08)">
+                <div class="h-1.5 w-full rounded-full overflow-hidden" :style="{ background: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(26,24,32,0.09)' }">
                   <div
                     class="h-full rounded-full"
-                    style="background: rgba(255,255,255,0.3)"
-                    :style="{ width: `${(badge.progress.current / badge.progress.target) * 100}%` }"
+                    :style="{ background: isDark ? 'rgba(255,255,255,0.3)' : 'rgba(26,24,32,0.2)', width: `${(badge.progress.current / badge.progress.target) * 100}%` }"
                   ></div>
                 </div>
                 <div class="text-xs text-text-tertiary mt-1 font-body">{{ badge.progress.current }}/{{ badge.progress.target }}</div>

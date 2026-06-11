@@ -25,98 +25,248 @@
         @apply bg-bg-primary text-text-primary;
     }
 
-    /* Light mode overrides */
+    /* ─── Light mode — éditorial chaud ─────────────────────────────────────── */
+
+    html:not(.dark) {
+        color-scheme: light;
+    }
+
     html:not(.dark) body {
-        @apply bg-gray-50 text-gray-900;
-        background-image: none;
+        background-color: #F6F5F0;
+        background-image:
+            radial-gradient(ellipse 70% 50% at 0% 0%,   rgba(255,  71,  87, 0.055)),
+            radial-gradient(ellipse 55% 40% at 100% 0%,  rgba(155,  81, 224, 0.05)),
+            radial-gradient(ellipse 80% 60% at 50% 110%, rgba(  0, 210, 211, 0.04));
+        background-attachment: fixed;
+        color: #1A1820;
     }
 
+    /* Text */
+    html:not(.dark) .text-text-primary   { color: #1A1820; }
+    html:not(.dark) .text-text-secondary { color: #4A495C; }
+    html:not(.dark) .text-text-tertiary  { color: #8C8B9E; }
+
+    /* Backgrounds */
+    html:not(.dark) .bg-bg-primary   { background-color: #F6F5F0; }
+    html:not(.dark) .bg-bg-secondary { background-color: #FFFFFF; }
+    html:not(.dark) .bg-bg-tertiary  { background-color: #EDECEA; }
+
+    /* Borders */
+    html:not(.dark) .border-border-color       { border-color: #E2E0D8; }
+    html:not(.dark) .border-border-color-light { border-color: #D4D2CA; }
+
+    /* ── Glassmorphisme blanc ── */
     html:not(.dark) .glass {
-        background: rgba(255, 255, 255, 0.9);
-        border-color: rgba(0, 0, 0, 0.08);
+        background: rgba(255, 255, 255, 0.82);
+        border: 1px solid rgba(26, 24, 32, 0.07);
+        box-shadow:
+            0 1px 0 rgba(255,255,255,0.9) inset,
+            0 4px 24px rgba(26, 24, 32, 0.07),
+            0 1px 4px  rgba(26, 24, 32, 0.04);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
     }
 
-    html:not(.dark) .text-text-primary {
-        color: #111827;
+    html:not(.dark) .glass::before {
+        background: linear-gradient(90deg, transparent, rgba(0,0,0,0.012), transparent);
     }
 
-    html:not(.dark) .text-text-secondary {
-        color: #4b5563;
+    html:not(.dark) .glass-hover:hover {
+        background: rgba(255, 255, 255, 0.97);
+        border-color: rgba(26, 24, 32, 0.10);
+        box-shadow: 0 8px 32px rgba(26, 24, 32, 0.09), 0 2px 8px rgba(26, 24, 32, 0.05);
     }
 
-    html:not(.dark) .text-text-tertiary {
-        color: #6b7280;
+    /* ── Cards ── */
+    html:not(.dark) .card {
+        background-color: #FFFFFF;
+        border-color: rgba(26, 24, 32, 0.07);
+        box-shadow: 0 2px 10px rgba(26, 24, 32, 0.055), 0 1px 3px rgba(26, 24, 32, 0.04);
     }
 
-    html:not(.dark) .bg-bg-primary {
-        background-color: #f9fafb;
+    html:not(.dark) .card:hover {
+        border-color: rgba(26, 24, 32, 0.11);
+        box-shadow: 0 8px 28px rgba(26, 24, 32, 0.09), 0 2px 8px rgba(26, 24, 32, 0.05);
     }
 
-    html:not(.dark) .bg-bg-secondary {
-        background-color: #ffffff;
+    html:not(.dark) .card::before {
+        background: linear-gradient(90deg, transparent, rgba(0,0,0,0.015), transparent);
     }
 
-    html:not(.dark) .bg-bg-tertiary {
-        background-color: #f3f4f6;
+    /* ── Stat cards — blanc avec accent gauche ── */
+    html:not(.dark) .stat-card {
+        background: #FFFFFF !important;
+        border-color: rgba(26, 24, 32, 0.07) !important;
+        box-shadow: 0 2px 14px rgba(26, 24, 32, 0.06) !important;
+        position: relative;
     }
 
-    html:not(.dark) .border-border-color {
-        border-color: #e5e7eb;
+    html:not(.dark) .stat-card::after {
+        content: '';
+        position: absolute;
+        top: 20px;
+        bottom: 20px;
+        left: 0;
+        width: 3px;
+        background: linear-gradient(to bottom, #FF4757, #6366f1, #00D2D3);
+        border-radius: 0 2px 2px 0;
     }
 
-    /* Input field fixes for light mode */
+    /* ── Category filter buttons ── */
+    html:not(.dark) .category-filter-btn {
+        background-color: #FFFFFF;
+        border-color: #E2E0D8;
+        color: #4A495C;
+        box-shadow: 0 1px 4px rgba(26,24,32,0.06);
+    }
+
+    html:not(.dark) .category-filter-btn:hover {
+        background-color: #F6F5F0;
+        border-color: #C8C6BE;
+        color: #1A1820;
+        box-shadow: 0 2px 8px rgba(26,24,32,0.08);
+    }
+
+    /* ── Hero pill badge (bg-white/5 border-white/10) ── */
+    html:not(.dark) .bg-white\/5  { background-color: rgba(26, 24, 32, 0.045) !important; }
+    html:not(.dark) .border-white\/10 { border-color: rgba(26, 24, 32, 0.09) !important; }
+    html:not(.dark) .border-white\/20 { border-color: rgba(26, 24, 32, 0.10) !important; }
+
+    /* ── Couleurs adaptées sur fond clair ── */
+    /* Jaune illisible sur blanc → ambre foncé */
+    html:not(.dark) .text-yellow-400 { color: #92620A; }
+    html:not(.dark) .bg-yellow-500\/20 { background-color: rgba(146, 98, 10, 0.09) !important; }
+
+    /* Vert illisible sur blanc → émeraude foncé */
+    html:not(.dark) .text-emerald-400 { color: #047857; }
+    html:not(.dark) .text-green-400   { color: #16A34A; }
+    html:not(.dark) .bg-green-500\/20  { background-color: rgba(22, 163, 74, 0.08) !important; }
+    html:not(.dark) .bg-emerald-500\/20 { background-color: rgba(4, 120, 87, 0.08) !important; }
+    html:not(.dark) .border-emerald-500\/30 { border-color: rgba(4, 120, 87, 0.18) !important; }
+
+    /* Rouge */
+    html:not(.dark) .text-red-400 { color: #DC2626; }
+    html:not(.dark) .text-red-300 { color: #B91C1C; }
+    html:not(.dark) .bg-red-500\/20 { background-color: rgba(220, 38, 38, 0.08) !important; }
+    html:not(.dark) .border-red-500\/30 { border-color: rgba(220, 38, 38, 0.18) !important; }
+
+    /* ── bg-bg-* utilitaires ── */
+    html:not(.dark) .bg-bg-secondary\/30 { background-color: rgba(255,255,255,0.5) !important; }
+    html:not(.dark) .bg-bg-secondary\/50 { background-color: rgba(255,255,255,0.75) !important; }
+    html:not(.dark) .bg-bg-tertiary\/30  { background-color: rgba(237,236,234,0.6) !important; }
+    html:not(.dark) .bg-bg-tertiary\/50  { background-color: rgba(237,236,234,0.8) !important; }
+
+    /* ── Holographique ── */
+    html:not(.dark) .holographic {
+        background: linear-gradient(135deg,
+            rgba(255,71,87,0.06) 0%,
+            rgba(155,81,224,0.06) 25%,
+            rgba(0,210,211,0.06) 50%,
+            rgba(236,204,104,0.06) 75%,
+            rgba(255,71,87,0.06) 100%);
+        background-size: 400% 400%;
+    }
+
+    /* ── Glow effects adoucis sur blanc ── */
+    html:not(.dark) .media-movie-glow  { box-shadow: 0 0 20px rgba(255,71,87,0.18), 0 0 40px rgba(255,71,87,0.09); }
+    html:not(.dark) .media-series-glow { box-shadow: 0 0 20px rgba(155,81,224,0.18), 0 0 40px rgba(155,81,224,0.09); }
+    html:not(.dark) .media-game-glow   { box-shadow: 0 0 20px rgba(0,210,211,0.18), 0 0 40px rgba(0,210,211,0.09); }
+    html:not(.dark) .media-book-glow   { box-shadow: 0 0 20px rgba(236,204,104,0.18), 0 0 40px rgba(236,204,104,0.09); }
+
+    /* ── Inputs ── */
     html:not(.dark) .input-field,
     html:not(.dark) input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
     html:not(.dark) textarea,
     html:not(.dark) select {
-        @apply bg-white border-gray-300 text-gray-900 placeholder-gray-500;
+        background-color: #FFFFFF;
+        border-color: #D8D6CE;
+        color: #1A1820;
+    }
+
+    html:not(.dark) .input-field::placeholder,
+    html:not(.dark) input::placeholder,
+    html:not(.dark) textarea::placeholder {
+        color: #9C9BAE;
     }
 
     html:not(.dark) .input-field:focus,
     html:not(.dark) input:focus:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
     html:not(.dark) textarea:focus,
     html:not(.dark) select:focus {
-        @apply bg-white border-indigo-500 ring-1 ring-indigo-500;
+        background-color: #FFFFFF;
+        border-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
     }
 
-    /* Fix buttons and interactive elements in light mode */
-    html:not(.dark) button:not(.btn-primary):not(.category-filter-btn):not([type="submit"]),
-    html:not(.dark) .nav-link {
-        @apply text-gray-700 hover:text-gray-900;
-    }
-
-    html:not(.dark) button:not(.btn-primary):not(.category-filter-btn):not([type="submit"]):hover {
-        @apply bg-gray-100;
-    }
-
-    /* Fix form inputs with bg-bg-tertiary/50 in light mode */
     html:not(.dark) input[class*="bg-bg-tertiary"],
     html:not(.dark) textarea[class*="bg-bg-tertiary"],
     html:not(.dark) select[class*="bg-bg-tertiary"] {
-        background-color: #ffffff !important;
-        border-color: #d1d5db !important;
-        color: #111827 !important;
+        background-color: #FFFFFF !important;
+        border-color: #D8D6CE !important;
+        color: #1A1820 !important;
     }
 
     html:not(.dark) input[class*="bg-bg-tertiary"]::placeholder,
     html:not(.dark) textarea[class*="bg-bg-tertiary"]::placeholder {
-        color: #9ca3af !important;
+        color: #9C9BAE !important;
     }
 
-    html:not(.dark) input[class*="bg-bg-tertiary"]:focus,
-    html:not(.dark) textarea[class*="bg-bg-tertiary"]:focus,
-    html:not(.dark) select[class*="bg-bg-tertiary"]:focus {
-        border-color: #6366f1 !important;
-        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1) !important;
+    html:not(.dark) input[class*="bg-bg-secondary"],
+    html:not(.dark) textarea[class*="bg-bg-secondary"] {
+        background-color: #FFFFFF !important;
+        border-color: #D8D6CE !important;
+        color: #1A1820 !important;
     }
 
-    /* Rating slider light mode */
-    html:not(.dark) input[type="range"]::-webkit-slider-track {
-        background: #e5e7eb;
+    html:not(.dark) input[class*="bg-bg-secondary"]::placeholder,
+    html:not(.dark) textarea[class*="bg-bg-secondary"]::placeholder {
+        color: #9C9BAE !important;
     }
 
-    html:not(.dark) input[type="range"]::-moz-range-track {
-        background: #e5e7eb;
+    /* ── Boutons non-primaires ── */
+    html:not(.dark) button:not(.btn-primary):not(.category-filter-btn):not([type="submit"]),
+    html:not(.dark) .nav-link {
+        color: #4A495C;
+    }
+
+    html:not(.dark) button:not(.btn-primary):not(.category-filter-btn):not([type="submit"]):hover {
+        background-color: #EDECEA;
+        color: #1A1820;
+    }
+
+    /* ── Range slider ── */
+    html:not(.dark) input[type="range"]::-webkit-slider-track { background: #E2E0D8; }
+    html:not(.dark) input[type="range"]::-moz-range-track     { background: #E2E0D8; }
+
+    /* ── Scrollbar ── */
+    html:not(.dark) ::-webkit-scrollbar-track { background: #EDECEA; }
+    html:not(.dark) ::-webkit-scrollbar-thumb { background: #D0CECC; border-radius: 9999px; }
+    html:not(.dark) ::-webkit-scrollbar-thumb:hover { background: #BAB8B4; }
+
+    /* ── Gradient backgrounds en section ── */
+    html:not(.dark) .bg-gradient-to-br.from-bg-primary {
+        background-image: linear-gradient(135deg, #F6F5F0 0%, #FAF9F6 50%, #F6F5F0 100%);
+    }
+
+    /* ── Section heading — garder le trait gradient ── */
+    html:not(.dark) .section-heading::before {
+        /* keep as-is — gradient works on any bg */
+    }
+
+    /* ── Découverte / discovery cards ── */
+    html:not(.dark) .discovery-card {
+        background: rgba(255,255,255,0.8);
+        border-color: rgba(26,24,32,0.07);
+    }
+
+    html:not(.dark) .discovery-card:hover {
+        background: rgba(255,255,255,0.95);
+        border-color: rgba(26,24,32,0.10);
+    }
+
+    /* ── Textarea / input sur bg-bg-tertiary/30 dans les reviews ── */
+    html:not(.dark) .rounded-xl.border.border-border-color.bg-bg-secondary {
+        background-color: #FFFFFF !important;
     }
 
     /* Custom scrollbar */

@@ -5,6 +5,7 @@ useHead({
 })
 
 const { user: currentUser } = useAuth()
+const { isDark } = useTheme()
 
 const leaderboard = ref<any[]>([])
 const loading = ref(true)
@@ -31,7 +32,9 @@ function rankStyle(rank: number): string {
   if (rank === 1) return 'background: linear-gradient(135deg, #f59e0b, #fbbf24); color: #1a1a1a'
   if (rank === 2) return 'background: linear-gradient(135deg, #94a3b8, #cbd5e1); color: #1a1a1a'
   if (rank === 3) return 'background: linear-gradient(135deg, #cd7f32, #b45309); color: #fff'
-  return 'background: rgba(255,255,255,0.06); color: var(--color-text-secondary)'
+  return isDark.value
+    ? 'background: rgba(255,255,255,0.06); color: var(--color-text-secondary)'
+    : 'background: rgba(26,24,32,0.05); color: var(--color-text-secondary)'
 }
 
 function rankEmoji(rank: number): string {
@@ -106,7 +109,7 @@ function rankEmoji(rank: number): string {
           <!-- XP bar -->
           <div class="hidden sm:flex flex-col items-end gap-1 w-28 shrink-0">
             <span class="text-xs text-text-tertiary font-body">{{ entry.experience_points }} XP</span>
-            <div class="h-1.5 w-full rounded-full overflow-hidden" style="background: rgba(255,255,255,0.08)">
+            <div class="h-1.5 w-full rounded-full overflow-hidden" :style="{ background: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(26,24,32,0.09)' }">
               <div
                 class="h-full rounded-full"
                 :style="{

@@ -31,7 +31,9 @@
       "Bash(docker-compose -f /c/Workspace/Artiverse/back-end/docker-compose.yml config)",
       "Bash(docker-compose exec -T backend python -c ' *)",
       "Bash(docker compose *)",
-      "PowerShell(Get-ChildItem -Path \"D:\\\\Workspace\\\\Artiverse\" -Force | Select-Object Name, @{Name=\"Type\";Expression={if\\($_.PSIsContainer\\){\"Directory\"}else{\"File\"}}} | Format-Table -AutoSize)"
+      "PowerShell(Get-ChildItem -Path \"D:\\\\Workspace\\\\Artiverse\" -Force | Select-Object Name, @{Name=\"Type\";Expression={if\\($_.PSIsContainer\\){\"Directory\"}else{\"File\"}}} | Format-Table -AutoSize)",
+      "Bash(xargs grep -l \"dark\\\\|theme\\\\|Toggle\")",
+      "Bash(node_modules/.bin/vue-tsc --noEmit)"
     ]
   }
 }
