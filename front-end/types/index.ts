@@ -1,5 +1,12 @@
 export type MediaType = 'film' | 'serie' | 'jeu' | 'livre'
 
+export interface User {
+  id: number
+  username: string
+  createdAt: Date
+}
+
+
 export interface MediaItem {
   id: number
   title: string
@@ -9,10 +16,20 @@ export interface MediaItem {
   type: MediaType
   score: number
   tags: string[]
+  nbcritiques? : number
+  critiques: number
   rank?: number
   description?: string
   duration?: string
   director?: string
+}
+
+export interface Critique {
+  id: number
+  user: User
+  note?: number
+  commentaire: string
+  date: Date
 }
 
 export interface SideItem {

@@ -1,4 +1,4 @@
-import type { MediaItem, ActivityItem, CategoryItem, StatItem } from '~/types'
+import type { MediaItem, ActivityItem, CategoryItem, StatItem } from '@/types'
 
 export const useHomeData = () => {
   const stats: StatItem[] = [
