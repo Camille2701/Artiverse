@@ -4,7 +4,7 @@
   const hiddenRoutes = ['/users/login', '/inscription', "/users/new"]
 
   const showSearch = computed(() => {
-    return !hiddenRoutes.includes(route.path)
+    return !hiddenRoutes.includes(route.path) && !route.path.startsWith('/users/')
   })
 </script>
 

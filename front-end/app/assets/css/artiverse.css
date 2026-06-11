@@ -16,6 +16,12 @@
 .btn-join{font-size:1.2em;color:#EEEDFE;background:#534AB7;border:none;border-radius:20px;padding:6px 26px;}
 .gold{color:#FAC775;background:#633806;}
 
+/* fixed search under nav */
+.search-fixed{position:fixed;top:65px;left:0;right:0;display:block;z-index:45;padding:16px 40px 0;pointer-events:none;box-sizing:border-box}
+.search-inner{width:100%;padding:0;box-sizing:border-box;pointer-events:auto}
+.search-inner input{width:100%;height:52px;border-radius:999px;padding:0 24px;background:rgba(43,34,98,0.96);border:1px solid #3f3790;color:#CFC9F4;font-size:15px;box-shadow:0 0 0 1px rgba(101,88,198,0.18) inset, 0 0 0 1px rgba(38,33,92,0.35)}
+.search-inner input::placeholder{color:#6f66a3}
+
 /* HERO */
 .hero{position:relative;padding:64px 40px 0;overflow:hidden;min-height:380px;display:grid;grid-template-columns:1fr 600px;gap:40px;align-items:start;}
 .hero-bg{position:absolute;inset:0;pointer-events:none;}
@@ -123,3 +129,4 @@ footer p{margin: 0 auto; display: flex; justify-content: center; align-items: ce
 @media screen and (width>= 1500px){
     .hero{padding: 64px 500px 0 64px;}
 }
+
