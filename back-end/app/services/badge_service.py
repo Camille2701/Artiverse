@@ -1,8 +1,8 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models import User, Badge, UserBadge, BadgeTier, BadgeCategory, MediaType, Media, Rating, Review
 from sqlalchemy import func, and_, select
-from typing import List, Dict, Optional
-import json
+from datetime import datetime
+from typing import List, Dict
 
 
 class BadgeService:

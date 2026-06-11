@@ -47,7 +47,7 @@ jobs:
 
       - name: Run linter
         run: |
-          ruff check app/ tests/
+          ruff check --fix app/ tests/
           mypy app/
 
       - name: Run tests
