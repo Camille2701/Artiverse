@@ -35,21 +35,6 @@
           </div>
         </div>
 
-        <!-- Quick actions on hover -->
-        <div class="absolute bottom-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex gap-2">
-          <button
-            class="glass p-2 rounded-lg hover:bg-white/20 transition-colors"
-            title="Ajouter aux favoris"
-          >
-            <UIIcon name="heart" size="small" />
-          </button>
-          <button
-            class="glass p-2 rounded-lg hover:bg-white/20 transition-colors"
-            title="Ajouter à la liste"
-          >
-            <UIIcon name="plus" size="small" />
-          </button>
-        </div>
       </div>
 
       <div class="flex flex-grow flex-col p-5">
