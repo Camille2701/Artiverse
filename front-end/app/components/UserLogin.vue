@@ -80,22 +80,21 @@ async function handleLogin() {
 </script>
 
 <template>
-  <form class="space-y-4" novalidate @submit.prevent="handleLogin">
-    <p class="text-sm text-slate-600">Renseigne tes identifiants pour accéder à ton espace.</p>
+  <form class="auth-form" novalidate @submit.prevent="handleLogin">
     <div>
-      <label class="text-sm font-medium text-slate-700">Email</label>
+      <label class="auth-label">Email</label>
       <input
         v-model.trim="email"
         :class="inputClass('email')"
         type="email"
-        placeholder="Email"
+        placeholder="nom@exemple.com"
         required
         @blur="markTouchedAndValidate('email')"
       >
-      <p v-if="touched.email && errors.email" class="mt-1 text-xs text-red-600">{{ errors.email }}</p>
+      <p v-if="touched.email && errors.email" class="auth-error">{{ errors.email }}</p>
     </div>
     <div>
-      <label class="text-sm font-medium text-slate-700">Mot de passe</label>
+      <label class="auth-label">Mot de passe</label>
       <input
         v-model="password"
         :class="inputClass('password')"
@@ -104,15 +103,48 @@ async function handleLogin() {
         required
         @blur="markTouchedAndValidate('password')"
       >
-      <p v-if="touched.password && errors.password" class="mt-1 text-xs text-red-600">{{ errors.password }}</p>
+      <p v-if="touched.password && errors.password" class="auth-error">{{ errors.password }}</p>
     </div>
     <button
-      class="btn-accent"
+      class="auth-submit btn-cta"
       type="submit"
       :disabled="isLoading"
     >
       {{ isLoading ? 'Connexion...' : 'Se connecter' }}
     </button>
-    <p v-if="errorMessage" class="text-sm text-red-600">{{ errorMessage }}</p>
+    <p v-if="errorMessage" class="auth-error auth-error--banner">{{ errorMessage }}</p>
   </form>
 </template>
+
+<style scoped>
+.auth-form {
+  display: grid;
+  gap: 18px;
+}
+
+.auth-label {
+  display: inline-block;
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--c-purple-pale);
+}
+
+.auth-error {
+  margin-top: 8px;
+  font-size: 0.88rem;
+  color: var(--c-pink);
+}
+
+.auth-error--banner {
+  padding: 12px 14px;
+  border: 0.5px solid rgba(237, 147, 177, 0.28);
+  border-radius: var(--radius-md);
+  background: rgba(75, 21, 40, 0.35);
+}
+
+.auth-submit {
+  width: 100%;
+  justify-content: center;
+}
+</style>
