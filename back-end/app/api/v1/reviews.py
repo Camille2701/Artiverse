@@ -46,8 +46,22 @@ async def get_media_reviews(
 
     reviews, total = await ReviewService.get_reviews_by_media(db, media_id, skip, limit)
 
+    # Bulk-fetch usernames
+    user_ids = list({r.user_id for r in reviews})
+    usernames: dict[str, str] = {}
+    if user_ids:
+        from sqlalchemy import select as sa_select
+        res = await db.execute(sa_select(User).where(User.id.in_(user_ids)))
+        usernames = {u.id: u.username for u in res.scalars().all()}
+
+    items = []
+    for r in reviews:
+        data = ReviewResponse.model_validate(r).model_dump(mode="json")
+        data["username"] = usernames.get(r.user_id)
+        items.append(data)
+
     return {
-        "items": [ReviewResponse.model_validate(r).model_dump(mode="json") for r in reviews],
+        "items": items,
         "total": total,
         "skip": skip,
         "limit": limit,

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { User } from '~/types/user'
-import type { Media } from '~/types/media'
 import type { UserStatistics } from '~/types/statistics'
 import { MediaType } from '~/types/media'
 
@@ -11,62 +10,105 @@ useHead({
   ]
 })
 
-const route = useRoute()
-const userId = route.params.id as string
 const { user: currentUser, isAuthenticated, logout } = useAuth()
-const { getTrendingMedia, getAllMedia } = useMedia()
 const { getMyStatistics } = useStatistics()
 const { getUserRatings } = useRatings()
-const { getReviewsByUser } = useReviews()
 
 const user = ref<User | null>(null)
 const error = ref(false)
 const loading = ref(true)
 
-// Statistics
 const statistics = ref<UserStatistics | null>(null)
-
-// View toggle
 const currentView = ref<'collection' | 'statistics'>('collection')
-
-// Media sections
 const selectedMediaType = ref<string | null>(null)
-const trendingMedia = ref<Media[]>([])
-const topRatedMedia = ref<Media[]>([])
-const userRecentMedia = ref<Media[]>([])
-const userTopRatedMedia = ref<Media[]>([])
 
-// Loading states
-const loadingMedia = ref({
-  trending: false,
-  topRated: false,
-  recent: false,
-  userTopRated: false
+// Collection : médias notés par l'utilisateur, groupés par type
+interface RatedMedia { media: any; score: number }
+const collectionByType = ref<Record<string, RatedMedia[]>>({
+  movie: [], tv_series: [], video_game: [], book: []
 })
+const collectionLoading = ref(false)
 
-const mediaTypes = [
-  { value: null, label: 'Tous les types' },
-  { value: MediaType.Movie, label: 'Films' },
-  { value: MediaType.Serie, label: 'Séries' },
-  { value: MediaType.Game, label: 'Jeux vidéo' },
-  { value: MediaType.Book, label: 'Livres' }
+const collectionSections = [
+  { key: 'movie',      label: 'Films',      emoji: '🎬' },
+  { key: 'tv_series',  label: 'Séries',     emoji: '📺' },
+  { key: 'video_game', label: 'Jeux vidéo', emoji: '🎮' },
+  { key: 'book',       label: 'Livres',     emoji: '📚' },
 ]
+
+const visibleSections = computed(() =>
+  selectedMediaType.value
+    ? collectionSections.filter(s => s.key === selectedMediaType.value)
+    : collectionSections
+)
+
+const mediaTypeFilters = [
+  { value: null,              label: 'Tout' },
+  { value: MediaType.Movie,   label: 'Films' },
+  { value: MediaType.Serie,   label: 'Séries' },
+  { value: MediaType.Game,    label: 'Jeux vidéo' },
+  { value: MediaType.Book,    label: 'Livres' },
+]
+
+const totalRated = computed(() =>
+  Object.values(collectionByType.value).reduce((sum, arr) => sum + arr.length, 0)
+)
+
+function normalizeMedia(raw: any): any {
+  return {
+    id: raw.id,
+    title: raw.title,
+    type: raw.media_type?.value ?? raw.media_type ?? raw.type,
+    description: raw.synopsis ?? raw.description,
+    rating: raw.average_rating ?? raw.rating,
+    releaseDate: raw.release_date ?? raw.releaseDate,
+    image: raw.cover_image ?? raw.image,
+  }
+}
+
+async function loadCollection() {
+  if (!isAuthenticated.value || !currentUser.value) return
+  collectionLoading.value = true
+  try {
+    const resp = await getUserRatings({ limit: 200 })
+    if (!resp?.items?.length) return
+
+    const ratings = resp.items
+    const mediaResults = await Promise.all(
+      ratings.map(r => $fetch<any>(`/api/v1/media/${r.media_id}`).catch(() => null))
+    )
+
+    const fresh: Record<string, RatedMedia[]> = { movie: [], tv_series: [], video_game: [], book: [] }
+    mediaResults.forEach((raw, i) => {
+      if (!raw) return
+      const media = normalizeMedia(raw)
+      const type: string = media.type
+      if (fresh[type]) {
+        fresh[type].push({ media, score: ratings[i].score })
+      }
+    })
+
+    // Trier par note de l'utilisateur (décroissant)
+    for (const type of Object.keys(fresh)) {
+      fresh[type].sort((a, b) => b.score - a.score)
+    }
+
+    collectionByType.value = fresh
+  } catch (e: any) {
+    console.error('Failed to load collection:', e?.statusMessage ?? e?.message ?? e)
+  } finally {
+    collectionLoading.value = false
+  }
+}
 
 onMounted(async () => {
   try {
-    // Get current user if authenticated
     if (isAuthenticated.value && currentUser.value) {
       user.value = currentUser.value
-
-      // Fetch user statistics
       try {
         statistics.value = await getMyStatistics()
-      } catch (statError) {
-        console.error('Failed to fetch statistics:', statError)
-      }
-
-      // Load initial media
-      await loadAllMedia()
+      } catch {}
+      await loadCollection()
     }
   } catch (e) {
     console.error('Failed to fetch user data:', e)
@@ -76,174 +118,18 @@ onMounted(async () => {
   }
 })
 
-// Watch for media type changes
-watch(selectedMediaType, () => {
-  loadAllMedia()
-})
-
-async function loadAllMedia() {
-  await Promise.all([
-    loadTrendingMedia(),
-    loadTopRatedMedia(),
-    loadUserRecentMedia(),
-    loadUserTopRatedMedia()
-  ])
-}
-
-async function loadTrendingMedia() {
-  try {
-    loadingMedia.value.trending = true
-    const params = selectedMediaType.value ? { limit: 8, media_type: selectedMediaType.value } : { limit: 8 }
-    trendingMedia.value = await getTrendingMedia(params)
-  } catch (error) {
-    console.error('Failed to load trending media:', error)
-    trendingMedia.value = []
-  } finally {
-    loadingMedia.value.trending = false
-  }
-}
-
-async function loadTopRatedMedia() {
-  try {
-    loadingMedia.value.topRated = true
-    const params = selectedMediaType.value
-      ? { limit: 8, media_type: selectedMediaType.value, sort_by: 'rating', order: 'desc' }
-      : { limit: 8, sort_by: 'rating', order: 'desc' }
-    const response = await getAllMedia(params)
-    topRatedMedia.value = response.items || []
-  } catch (error) {
-    console.error('Failed to load top rated media:', error)
-    topRatedMedia.value = []
-  } finally {
-    loadingMedia.value.topRated = false
-  }
-}
-
-async function loadUserRecentMedia() {
-  try {
-    loadingMedia.value.recent = true
-
-    if (!isAuthenticated.value || !currentUser.value) {
-      userRecentMedia.value = []
-      return
-    }
-
-    // Get user's recent reviews to determine recently interacted media
-    const reviewsResponse = await getReviewsByUser(currentUser.value.id, { limit: 20 })
-
-    if (!reviewsResponse?.items || reviewsResponse.items.length === 0) {
-      userRecentMedia.value = []
-      return
-    }
-
-    // Get unique media IDs from reviews
-    const mediaIds = [...new Set(reviewsResponse.items.map(review => review.media_id))]
-
-    // Fetch full media objects
-    const mediaPromises = mediaIds.map(id =>
-      $fetch<Media>(`/api/v1/media/${id}`).catch(() => null)
-    )
-    const mediaItems = await Promise.all(mediaPromises)
-    let allRecentMedia = mediaItems.filter((m): m is Media => m !== null)
-
-    // Sort by review date (most recent first)
-    allRecentMedia.sort((a, b) => {
-      const aReview = reviewsResponse.items.find(r => r.media_id === a.id)
-      const bReview = reviewsResponse.items.find(r => r.media_id === b.id)
-      const aDate = aReview ? new Date(aReview.created_at).getTime() : 0
-      const bDate = bReview ? new Date(bReview.created_at).getTime() : 0
-      return bDate - aDate
-    })
-
-    // Filter by selected media type if needed
-    if (selectedMediaType.value) {
-      userRecentMedia.value = allRecentMedia.filter(
-        m => m.media_type === selectedMediaType.value
-      )
-    } else {
-      userRecentMedia.value = allRecentMedia.slice(0, 8)
-    }
-  } catch (error) {
-    console.error('Failed to load user recent media:', error)
-    userRecentMedia.value = []
-  } finally {
-    loadingMedia.value.recent = false
-  }
-}
-
-async function loadUserTopRatedMedia() {
-  try {
-    loadingMedia.value.userTopRated = true
-
-    if (!isAuthenticated.value || !currentUser.value) {
-      userTopRatedMedia.value = []
-      return
-    }
-
-    // Get user's ratings to determine top rated media
-    const ratingsResponse = await getUserRatings({ limit: 50 })
-
-    if (!ratingsResponse?.items || ratingsResponse.items.length === 0) {
-      userTopRatedMedia.value = []
-      return
-    }
-
-    // Filter for ratings 8+ (top rated)
-    const topRatedRatings = ratingsResponse.items.filter(rating => rating.score >= 8)
-
-    // Get unique media IDs from ratings
-    const mediaIds = [...new Set(topRatedRatings.map(rating => rating.media_id))]
-
-    // Fetch full media objects
-    const mediaPromises = mediaIds.map(id =>
-      $fetch<Media>(`/api/v1/media/${id}`).catch(() => null)
-    )
-    const mediaItems = await Promise.all(mediaPromises)
-    let allTopRated = mediaItems.filter((m): m is Media => m !== null)
-
-    // Sort by rating score (highest first)
-    allTopRated.sort((a, b) => {
-      const aRating = topRatedRatings.find(r => r.media_id === a.id)
-      const bRating = topRatedRatings.find(r => r.media_id === b.id)
-      const aScore = aRating ? aRating.score : 0
-      const bScore = bRating ? bRating.score : 0
-      return bScore - aScore
-    })
-
-    // Filter by selected media type if needed
-    if (selectedMediaType.value) {
-      userTopRatedMedia.value = allTopRated.filter(
-        m => m.media_type === selectedMediaType.value
-      )
-    } else {
-      userTopRatedMedia.value = allTopRated.slice(0, 8)
-    }
-  } catch (error) {
-    console.error('Failed to load user top rated media:', error)
-    userTopRatedMedia.value = []
-  } finally {
-    loadingMedia.value.userTopRated = false
-  }
-}
-
 function getMediaTypeLabel(type: string): string {
   const labels: Record<string, string> = {
-    'movie': 'Films',
-    'tv_series': 'Séries',
-    'video_game': 'Jeux vidéo',
-    'book': 'Livres'
+    'movie': 'Films', 'tv_series': 'Séries', 'video_game': 'Jeux vidéo', 'book': 'Livres'
   }
   return labels[type] || type
 }
 
-function getMediaTypeColor(type: string): string {
-  const colors: Record<string, string> = {
-    'movie': 'media-movie',
-    'tv_series': 'media-series',
-    'video_game': 'media-game',
-    'book': 'media-book'
+function getMediaTypeHex(type: string): string {
+  const hexes: Record<string, string> = {
+    'movie': '#FF4757', 'tv_series': '#9B51E0', 'video_game': '#00D2D3', 'book': '#ECCC68'
   }
-  return colors[type] || ''
+  return hexes[type] || '#6366f1'
 }
 
 async function handleLogout() {
@@ -390,8 +276,7 @@ async function handleLogout() {
                 <div class="h-3 rounded-full bg-bg-tertiary overflow-hidden">
                   <div
                     class="h-full rounded-full transition-all duration-500 ease-out"
-                    :class="getMediaTypeColor(type)"
-                    :style="{ width: `${item.percentage}%` }"
+                    :style="{ width: `${item.percentage}%`, backgroundColor: getMediaTypeHex(type) }"
                   ></div>
                 </div>
               </div>
@@ -423,8 +308,7 @@ async function handleLogout() {
                 <div class="flex items-center gap-2">
                   <div
                     class="h-2 rounded-full"
-                    :class="getMediaTypeColor(type)"
-                    :style="{ width: `${Math.min(count * 10, 100)}px` }"
+                    :style="{ width: `${Math.min(count * 10, 100)}px`, backgroundColor: getMediaTypeHex(type) }"
                   ></div>
                   <span class="text-sm font-bold text-text-primary font-display">{{ count }}</span>
                 </div>
@@ -460,8 +344,7 @@ async function handleLogout() {
                   >
                     <div
                       class="h-full rounded-full"
-                      :class="getMediaTypeColor(type)"
-                      :style="{ width: `${(data.average_score / 10) * 100}%` }"
+                      :style="{ width: `${(data.average_score / 10) * 100}%`, backgroundColor: getMediaTypeHex(type) }"
                     ></div>
                   </div>
                 </div>
@@ -475,123 +358,76 @@ async function handleLogout() {
       </div>
 
       <!-- Collection View -->
-      <div v-if="currentView === 'collection'">
+      <div v-if="currentView === 'collection'" class="space-y-6">
 
-      <!-- Media Type Filter (Collection View Only) -->
-      <div v-if="currentView === 'collection'" class="glass rounded-xl p-4 border border-border-color">
-        <label class="block text-sm font-medium text-text-primary mb-3 font-display">Filtrer par type de média</label>
-        <div class="flex flex-wrap gap-2">
-          <button
-            v-for="type in mediaTypes"
-            :key="type.value || 'all'"
-            @click="selectedMediaType = type.value"
-            :class="[
-              'px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200',
-              selectedMediaType === type.value
-                ? 'bg-accent text-white font-semibold'
-                : 'bg-bg-secondary text-text-secondary hover:bg-bg-tertiary'
-            ]"
+        <!-- Filtre par type -->
+        <div class="glass rounded-xl p-4 border border-border-color">
+          <div class="flex flex-wrap gap-2">
+            <button
+              v-for="f in mediaTypeFilters"
+              :key="f.value ?? 'all'"
+              @click="selectedMediaType = f.value"
+              :class="[
+                'px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200',
+                selectedMediaType === f.value
+                  ? 'bg-accent text-white font-semibold'
+                  : 'bg-bg-secondary text-text-secondary hover:bg-bg-tertiary'
+              ]"
+            >
+              {{ f.label }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Chargement initial -->
+        <div v-if="collectionLoading" class="flex justify-center py-16">
+          <div class="spinner !h-10 !w-10 !border-4"></div>
+        </div>
+
+        <!-- Collection vide -->
+        <div v-else-if="totalRated === 0" class="glass rounded-xl p-10 border border-border-color text-center">
+          <div class="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-bg-tertiary/50 text-4xl">⭐</div>
+          <h3 class="mb-2 text-xl font-semibold text-text-primary font-display">Aucun média noté</h3>
+          <p class="text-sm text-text-secondary font-body">Notez des films, séries, jeux ou livres pour les voir apparaître ici.</p>
+          <NuxtLink to="/search" class="btn-primary mt-6 inline-block px-6 py-2.5">Parcourir le catalogue</NuxtLink>
+        </div>
+
+        <!-- Sections par type -->
+        <template v-else>
+          <div
+            v-for="section in visibleSections"
+            :key="section.key"
+            class="glass rounded-xl p-6 border border-border-color"
           >
-            {{ type.label }}
-          </button>
-        </div>
-      </div>
+            <div class="mb-5 flex items-center gap-2">
+              <span class="text-2xl">{{ section.emoji }}</span>
+              <h2 class="text-2xl font-bold text-text-primary font-display">{{ section.label }}</h2>
+              <span class="ml-1 rounded-full bg-bg-tertiary px-2.5 py-0.5 text-xs font-semibold text-text-secondary">
+                {{ collectionByType[section.key].length }}
+              </span>
+            </div>
 
-      <!-- Trending Media Section -->
-      <div v-if="currentView === 'collection'" class="glass rounded-xl p-6 border border-border-color">
-        <h2 class="text-2xl font-bold text-text-primary mb-4 font-display flex items-center gap-2">
-          <span class="text-2xl">🔥</span>
-          Top Trending
-          <span v-if="selectedMediaType" class="text-sm font-normal text-text-secondary">
-            ({{ getMediaTypeLabel(selectedMediaType) }})
-          </span>
-        </h2>
-        <div v-if="loadingMedia.trending" class="flex justify-center py-8">
-          <div class="spinner !h-8 !w-8 !border-3"></div>
-        </div>
-        <div v-else-if="trendingMedia.length > 0" class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-          <MediaCard
-            v-for="media in trendingMedia"
-            :key="media.id"
-            :media="media"
-          />
-        </div>
-        <div v-else class="text-center py-8 text-text-secondary">
-          Aucun média trending disponible
-        </div>
-      </div>
+            <div v-if="collectionByType[section.key].length > 0"
+              class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+              <div
+                v-for="item in collectionByType[section.key]"
+                :key="item.media.id"
+                class="relative"
+              >
+                <!-- Badge score utilisateur -->
+                <div class="absolute bottom-2 right-2 z-20 flex items-center gap-1 rounded-lg bg-accent px-2 py-1 text-xs font-bold text-white shadow-lg">
+                  ★ {{ item.score }}/10
+                </div>
+                <MediaShow :media="item.media" :hideRating="true" />
+              </div>
+            </div>
 
-      <!-- Top Rated Media Section -->
-      <div class="glass rounded-xl p-6 border border-border-color">
-        <h2 class="text-2xl font-bold text-text-primary mb-4 font-display flex items-center gap-2">
-          <span class="text-2xl">⭐</span>
-          Top Notés
-          <span v-if="selectedMediaType" class="text-sm font-normal text-text-secondary">
-            ({{ getMediaTypeLabel(selectedMediaType) }})
-          </span>
-        </h2>
-        <div v-if="loadingMedia.topRated" class="flex justify-center py-8">
-          <div class="spinner !h-8 !w-8 !border-3"></div>
-        </div>
-        <div v-else-if="topRatedMedia.length > 0" class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-          <MediaCard
-            v-for="media in topRatedMedia"
-            :key="media.id"
-            :media="media"
-          />
-        </div>
-        <div v-else class="text-center py-8 text-text-secondary">
-          Aucun média noté disponible
-        </div>
-      </div>
+            <div v-else class="py-8 text-center text-sm text-text-tertiary">
+              Aucun {{ section.label.toLowerCase() }} noté pour l'instant
+            </div>
+          </div>
+        </template>
 
-      <!-- User Recent Media Section -->
-      <div class="glass rounded-xl p-6 border border-border-color">
-        <h2 class="text-2xl font-bold text-text-primary mb-4 font-display flex items-center gap-2">
-          <span class="text-2xl">🕐</span>
-          Récemment ajoutés
-          <span v-if="selectedMediaType" class="text-sm font-normal text-text-secondary">
-            ({{ getMediaTypeLabel(selectedMediaType) }})
-          </span>
-        </h2>
-        <div v-if="loadingMedia.recent" class="flex justify-center py-8">
-          <div class="spinner !h-8 !w-8 !border-3"></div>
-        </div>
-        <div v-else-if="userRecentMedia.length > 0" class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-          <MediaCard
-            v-for="media in userRecentMedia"
-            :key="media.id"
-            :media="media"
-          />
-        </div>
-        <div v-else class="text-center py-8 text-text-secondary">
-          Aucun média récent disponible
-        </div>
-      </div>
-
-      <!-- User Top Rated Media Section -->
-      <div v-if="statistics && statistics.top_rated && statistics.top_rated.length > 0" class="glass rounded-xl p-6 border border-border-color">
-        <h2 class="text-2xl font-bold text-text-primary mb-4 font-display flex items-center gap-2">
-          <span class="text-2xl">💖</span>
-          Mes coups de cœur
-          <span v-if="selectedMediaType" class="text-sm font-normal text-text-secondary">
-            ({{ getMediaTypeLabel(selectedMediaType) }})
-          </span>
-        </h2>
-        <div v-if="loadingMedia.userTopRated" class="flex justify-center py-8">
-          <div class="spinner !h-8 !w-8 !border-3"></div>
-        </div>
-        <div v-else-if="userTopRatedMedia.length > 0" class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-          <MediaCard
-            v-for="media in userTopRatedMedia"
-            :key="media.id"
-            :media="media"
-          />
-        </div>
-        <div v-else class="text-center py-8 text-text-secondary">
-          Aucun coup de cœur disponible pour ce type
-        </div>
-      </div>
       </div> <!-- End Collection View -->
 
       <!-- Actions -->

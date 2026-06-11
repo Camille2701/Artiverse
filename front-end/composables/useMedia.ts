@@ -3,11 +3,17 @@ import type { Media, MediaCreate, MediaUpdate } from '~/types/media'
 export const useMedia = () => {
   const { fetchWithAuth } = useApi()
 
-  async function getAllMedia(params?: { skip?: number; limit?: number; media_type?: string }): Promise<{
+  async function getAllMedia(params?: { skip?: number; limit?: number; media_type?: string | null; sort_by?: string; order?: string }): Promise<{
     items: Media[]
     total: number
   }> {
-    const queryString = new URLSearchParams(params as any).toString()
+    const cleaned: Record<string, string> = {}
+    if (params) {
+      for (const [k, v] of Object.entries(params)) {
+        if (v != null) cleaned[k] = String(v)
+      }
+    }
+    const queryString = new URLSearchParams(cleaned).toString()
     const url = queryString ? `/api/v1/media?${queryString}` : '/api/v1/media'
     return await $fetch(url)
   }
@@ -24,10 +30,21 @@ export const useMedia = () => {
     return await $fetch(`/api/v1/media/search?${queryString}`)
   }
 
-  async function getTrendingMedia(params?: { skip?: number; limit?: number }): Promise<Media[]> {
-    const queryString = new URLSearchParams(params as any).toString()
+  async function getTrendingMedia(params?: { skip?: number; limit?: number; media_type?: string | null }): Promise<Media[]> {
+    const cleaned: Record<string, string> = {}
+    if (params) {
+      for (const [k, v] of Object.entries(params)) {
+        if (v != null) cleaned[k] = String(v)
+      }
+    }
+    const queryString = new URLSearchParams(cleaned).toString()
     const url = queryString ? `/api/v1/media/trending?${queryString}` : '/api/v1/media/trending'
-    return await $fetch<Media[]>(url)
+    const response = await $fetch<{ items: Media[]; total: number } | Media[]>(url)
+    // Backend returns { items, total } shape
+    if (response && !Array.isArray(response) && 'items' in response) {
+      return response.items
+    }
+    return response as Media[]
   }
 
   async function createMedia(media: MediaCreate): Promise<Media> {

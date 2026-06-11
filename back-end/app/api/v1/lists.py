@@ -28,9 +28,8 @@ async def get_my_lists(
 ):
     """Get all lists for current user."""
     lists = await ListService.get_user_lists(db, current_user.id)
-    
     return {
-        "lists": lists,
+        "lists": [ListResponse.model_validate(lst).model_dump(mode="json") for lst in lists],
         "count": len(lists)
     }
 

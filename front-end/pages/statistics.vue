@@ -42,13 +42,24 @@ function getMediaTypeLabel(type: string): string {
 }
 
 function getMediaTypeColor(type: string): string {
+  // Full class names required so Tailwind includes them in the bundle
   const colors: Record<string, string> = {
-    'movie': 'bg-accent-movie',
-    'tv_series': 'bg-accent-series',
+    'movie':      'bg-accent-movie',
+    'tv_series':  'bg-accent-series',
     'video_game': 'bg-accent-game',
-    'book': 'bg-accent-book'
+    'book':       'bg-accent-book',
   }
   return colors[type] || 'bg-slate-500'
+}
+
+function getMediaTypeHex(type: string): string {
+  const hexes: Record<string, string> = {
+    'movie':      '#FF4757',
+    'tv_series':  '#9B51E0',
+    'video_game': '#00D2D3',
+    'book':       '#ECCC68',
+  }
+  return hexes[type] || '#6366f1'
 }
 
 const sortedTasteDistribution = computed(() => {
@@ -131,32 +142,24 @@ const totalPercentage = computed(() => {
 
       <!-- Taste Distribution -->
       <div class="card p-6">
-        <h3 class="text-xl font-bold text-text-primary mb-6 font-display">
-          Répartition des goûts
-        </h3>
-        <div class="space-y-4">
-          <div
-            v-for="item in sortedTasteDistribution"
-            :key="item.type"
-            class="flex items-center gap-4"
-          >
-            <div class="w-24 text-sm font-medium text-text-secondary font-body">
-              {{ getMediaTypeLabel(item.type) }}
-            </div>
-            <div class="flex-1">
-              <div class="h-3 rounded-full bg-bg-tertiary overflow-hidden">
-                <div
-                  class="h-full rounded-full transition-all duration-500 ease-out"
-                  :class="getMediaTypeColor(item.type)"
-                  :style="{ width: `${item.percentage}%` }"
-                ></div>
+        <h3 class="text-xl font-bold text-text-primary mb-6 font-display">Répartition des goûts</h3>
+        <div v-if="sortedTasteDistribution.length === 0" class="text-sm italic text-text-tertiary">
+          Pas encore de données.
+        </div>
+        <div class="space-y-5">
+          <div v-for="item in sortedTasteDistribution" :key="item.type">
+            <div class="mb-1.5 flex items-center justify-between">
+              <span class="text-sm font-semibold text-text-primary font-display">{{ getMediaTypeLabel(item.type) }}</span>
+              <div class="flex items-center gap-2 text-sm text-text-secondary font-body">
+                <span class="font-bold text-text-primary">{{ item.percentage }}%</span>
+                <span class="text-text-tertiary">({{ item.total }})</span>
               </div>
             </div>
-            <div class="w-20 text-right text-sm font-bold text-text-primary font-display">
-              {{ item.percentage }}%
-            </div>
-            <div class="w-16 text-right text-sm text-text-secondary font-body">
-              ({{ item.total }})
+            <div class="h-3 w-full overflow-hidden rounded-full bg-bg-tertiary">
+              <div
+                class="h-full rounded-full transition-all duration-700 ease-out"
+                :style="{ width: `${item.percentage}%`, backgroundColor: getMediaTypeHex(item.type) }"
+              ></div>
             </div>
           </div>
         </div>
@@ -164,67 +167,49 @@ const totalPercentage = computed(() => {
 
       <!-- Activity by Type -->
       <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <!-- Avis par type -->
         <div class="card p-6">
-          <h3 class="text-xl font-bold text-text-primary mb-4 font-display">
-            Avis par type
-          </h3>
-          <div class="space-y-3">
-            <div
-              v-for="(count, type) in statistics.reviews_by_type"
-              :key="`review-${type}`"
-              class="flex items-center justify-between"
-            >
-              <span class="text-sm text-text-secondary font-body">
-                {{ getMediaTypeLabel(type) }}
-              </span>
-              <div class="flex items-center gap-2">
-                <div
-                  class="h-2 rounded-full"
-                  :class="getMediaTypeColor(type)"
-                  :style="{ width: `${Math.min(count * 10, 100)}px` }"
-                ></div>
+          <h3 class="text-xl font-bold text-text-primary mb-5 font-display">Avis par type</h3>
+          <div v-if="Object.keys(statistics.reviews_by_type).length === 0" class="text-sm italic text-text-tertiary">
+            Aucun avis pour le moment
+          </div>
+          <div class="space-y-4">
+            <div v-for="(count, type) in statistics.reviews_by_type" :key="`review-${type}`">
+              <div class="mb-1.5 flex items-center justify-between">
+                <span class="text-sm font-semibold text-text-primary font-display">{{ getMediaTypeLabel(type) }}</span>
                 <span class="text-sm font-bold text-text-primary font-display">{{ count }}</span>
               </div>
-            </div>
-            <div v-if="Object.keys(statistics.reviews_by_type).length === 0" class="text-sm text-text-tertiary font-body italic">
-              Aucun avis pour le moment
+              <div class="h-2.5 w-full overflow-hidden rounded-full bg-bg-tertiary">
+                <div
+                  class="h-full rounded-full transition-all duration-700 ease-out"
+                  :style="{ width: `${Math.min((count / Math.max(...Object.values(statistics.reviews_by_type))) * 100, 100)}%`, backgroundColor: getMediaTypeHex(type) }"
+                ></div>
+              </div>
             </div>
           </div>
         </div>
 
+        <!-- Notes par type -->
         <div class="card p-6">
-          <h3 class="text-xl font-bold text-text-primary mb-4 font-display">
-            Notes par type
-          </h3>
-          <div class="space-y-3">
-            <div
-              v-for="(data, type) in statistics.ratings_by_type"
-              :key="`rating-${type}`"
-              class="space-y-1"
-            >
-              <div class="flex items-center justify-between">
-                <span class="text-sm font-medium text-text-secondary font-body">
-                  {{ getMediaTypeLabel(type) }}
-                </span>
-                <span class="text-sm font-bold text-text-primary font-display">
-                  {{ data.average_score.toFixed(1) }}/10
-                </span>
-              </div>
-              <div class="flex items-center justify-between text-xs text-text-secondary font-body">
-                <span>{{ data.count }} note(s)</span>
-                <div
-                  class="h-1.5 rounded-full bg-bg-tertiary flex-1 mx-2 max-w-[100px]"
-                >
-                  <div
-                    class="h-full rounded-full"
-                    :class="getMediaTypeColor(type)"
-                    :style="{ width: `${(data.average_score / 10) * 100}%` }"
-                  ></div>
+          <h3 class="text-xl font-bold text-text-primary mb-5 font-display">Notes moyennes par type</h3>
+          <div v-if="Object.keys(statistics.ratings_by_type).length === 0" class="text-sm italic text-text-tertiary">
+            Aucune note pour le moment
+          </div>
+          <div class="space-y-4">
+            <div v-for="(data, type) in statistics.ratings_by_type" :key="`rating-${type}`">
+              <div class="mb-1.5 flex items-center justify-between">
+                <span class="text-sm font-semibold text-text-primary font-display">{{ getMediaTypeLabel(type) }}</span>
+                <div class="flex items-center gap-2">
+                  <span class="text-xs text-text-tertiary font-body">{{ data.count }} note(s)</span>
+                  <span class="text-sm font-bold text-text-primary font-display">{{ data.average_score.toFixed(1) }}/10</span>
                 </div>
               </div>
-            </div>
-            <div v-if="Object.keys(statistics.ratings_by_type).length === 0" class="text-sm text-text-tertiary font-body italic">
-              Aucune note pour le moment
+              <div class="h-2.5 w-full overflow-hidden rounded-full bg-bg-tertiary">
+                <div
+                  class="h-full rounded-full transition-all duration-700 ease-out"
+                  :style="{ width: `${(data.average_score / 10) * 100}%`, backgroundColor: getMediaTypeHex(type) }"
+                ></div>
+              </div>
             </div>
           </div>
         </div>

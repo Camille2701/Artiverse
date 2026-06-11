@@ -90,19 +90,44 @@ async def create_media(
 @router.get("")
 async def list_media(
     skip: int = 0,
-    limit: int = 10,
+    limit: int = 20,
+    media_type: Optional[str] = None,
+    sort_by: Optional[str] = None,
+    order: Optional[str] = "asc",
     db: AsyncSession = Depends(get_db)
 ):
-    """Get all media with pagination - Frontend compatible format."""
-    from app.models import Media
-    from sqlalchemy import select
+    """Get all media with optional filtering and pagination."""
+    from app.models import Media as MediaModel, MediaType as MediaTypeEnum
+    from sqlalchemy import select, func, desc, asc
 
-    query = select(Media).offset(skip).limit(limit)
+    count_query = select(func.count()).select_from(MediaModel)
+    query = select(MediaModel)
+
+    if media_type:
+        try:
+            mt = MediaTypeEnum(media_type)
+            query = query.where(MediaModel.media_type == mt)
+            count_query = count_query.where(MediaModel.media_type == mt)
+        except ValueError:
+            pass
+
+    if sort_by == "rating":
+        query = query.order_by(desc(MediaModel.average_rating) if order == "desc" else asc(MediaModel.average_rating))
+    elif sort_by == "popularity":
+        query = query.order_by(desc(MediaModel.popularity_score) if order == "desc" else asc(MediaModel.popularity_score))
+    elif sort_by == "newest":
+        query = query.order_by(desc(MediaModel.release_date))
+    elif sort_by == "oldest":
+        query = query.order_by(asc(MediaModel.release_date))
+
+    total_result = await db.execute(count_query)
+    total = total_result.scalar_one()
+
+    query = query.offset(skip).limit(limit)
     result = await db.execute(query)
     media_list = result.scalars().all()
 
-    # Transform to frontend compatible format
-    return [_media_to_frontend(media) for media in media_list]
+    return {"items": [_media_to_frontend(m) for m in media_list], "total": total}
 
 
 @router.get("/search", response_model=dict)

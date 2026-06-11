@@ -28,7 +28,7 @@
         </div>
 
         <!-- Rating badge -->
-        <div v-if="props.media.rating" class="absolute top-3 right-3 z-10">
+        <div v-if="props.media.rating && !props.hideRating" class="absolute top-3 right-3 z-10">
           <div class="glass rounded-lg px-3 py-1 flex items-center gap-1">
             <UIIcon name="star" size="small" class="text-yellow-400" />
             <span class="text-text-primary font-semibold text-sm">{{ props.media.rating }}/10</span>
@@ -85,6 +85,7 @@ import UIIcon from '~/components/icons/UIIcon.vue'
 
 const props = defineProps<{
   media: Media
+  hideRating?: boolean
 }>();
 
 function formatDate(dateStr: string) {

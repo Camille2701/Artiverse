@@ -390,6 +390,8 @@ class ListService:
     @staticmethod
     async def create_list(db: AsyncSession, list_create: ListCreate, user_id: str) -> List:
         """Create a new list."""
+        from sqlalchemy.orm import selectinload
+
         user_result = await db.execute(
             select(User).where(User.id == user_id)
         )
@@ -407,22 +409,30 @@ class ListService:
             await XPService.award_list_creation_xp(db, user)
 
         await db.commit()
-        await db.refresh(db_list)
-        return db_list
+
+        # Re-query with items eagerly loaded to avoid lazy-load error during serialization
+        result = await db.execute(
+            select(List).where(List.id == db_list.id).options(selectinload(List.items))
+        )
+        return result.scalar_one()
 
     @staticmethod
     async def get_list_by_id(db: AsyncSession, list_id: str) -> List | None:
         """Get list by ID."""
+        from sqlalchemy.orm import selectinload
+
         result = await db.execute(
-            select(List).where(List.id == list_id)
+            select(List).where(List.id == list_id).options(selectinload(List.items))
         )
         return result.scalar_one_or_none()
 
     @staticmethod
     async def get_user_lists(db: AsyncSession, user_id: str) -> list[List]:
         """Get all lists for a user."""
+        from sqlalchemy.orm import selectinload
+
         result = await db.execute(
-            select(List).where(List.user_id == user_id)
+            select(List).where(List.user_id == user_id).options(selectinload(List.items))
         )
         return result.scalars().all()
 

@@ -21,7 +21,7 @@ export const useLists = () => {
 
   async function updateList(id: string, list: ListUpdate): Promise<MediaList> {
     return await fetchWithAuth<MediaList>(`/api/v1/lists/${id}`, {
-      method: 'PUT',
+      method: 'PATCH',
       body: list
     })
   }
@@ -33,9 +33,8 @@ export const useLists = () => {
   }
 
   async function addMediaToList(listId: string, mediaId: string): Promise<ListItem> {
-    return await fetchWithAuth<ListItem>(`/api/v1/lists/${listId}/items`, {
-      method: 'POST',
-      body: { media_id: mediaId }
+    return await fetchWithAuth<ListItem>(`/api/v1/lists/${listId}/items/${mediaId}`, {
+      method: 'POST'
     })
   }
 

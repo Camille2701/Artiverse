@@ -11,6 +11,37 @@ from app.dependencies.auth import get_current_user
 router = APIRouter(prefix="/ratings", tags=["ratings"])
 
 
+@router.get("", response_model=dict)
+async def get_my_ratings(
+    skip: int = 0,
+    limit: int = 200,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Get all ratings for the current user."""
+    from app.models import Rating
+    from sqlalchemy import select, func
+
+    count_result = await db.execute(
+        select(func.count()).select_from(Rating).where(Rating.user_id == current_user.id)
+    )
+    total = count_result.scalar_one()
+
+    result = await db.execute(
+        select(Rating)
+        .where(Rating.user_id == current_user.id)
+        .order_by(Rating.created_at.desc())
+        .offset(skip)
+        .limit(limit)
+    )
+    ratings = result.scalars().all()
+
+    return {
+        "items": [RatingResponse.model_validate(r).model_dump(mode="json") for r in ratings],
+        "total": total
+    }
+
+
 @router.post("", response_model=RatingResponse)
 async def create_or_update_rating(
     rating_create: RatingCreate,

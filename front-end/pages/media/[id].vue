@@ -15,6 +15,7 @@ const mediaId = route.params.id as string
 const { fetchWithAuth, getErrorMessage, isLoading, error, clearError } = useApi()
 const { user, isAuthenticated } = useAuth()
 const { getSuggestions } = useMedia()
+const { getAllLists, addMediaToList } = useLists()
 
 const media = ref<Media | null>(null)
 const suggestions = ref<Media[]>([])
@@ -30,6 +31,33 @@ const isSubmittingReview = ref(false)
 const isSubmittingRating = ref(false)
 const showReviewForm = ref(false)
 const reviewError = ref('')
+
+// Add to list
+const userLists = ref<any[]>([])
+const showListDropdown = ref(false)
+const listMessage = ref('')
+const listMessageType = ref<'success' | 'error'>('success')
+
+async function loadUserLists() {
+  if (!isAuthenticated.value) return
+  try {
+    userLists.value = await getAllLists()
+  } catch {}
+}
+
+async function handleAddToList(listId: string, listName: string) {
+  try {
+    await addMediaToList(listId, mediaId)
+    listMessage.value = `Ajouté à "${listName}" !`
+    listMessageType.value = 'success'
+  } catch {
+    listMessage.value = 'Déjà dans cette liste ou erreur.'
+    listMessageType.value = 'error'
+  } finally {
+    showListDropdown.value = false
+    setTimeout(() => { listMessage.value = '' }, 3000)
+  }
+}
 
 const coverImage = computed(() =>
   resolveMediaImage(media.value?.image, media.value?.type)
@@ -129,7 +157,15 @@ async function submitRating() {
   }
 }
 
-onMounted(fetchMediaDetails)
+onMounted(async () => {
+  await Promise.all([fetchMediaDetails(), loadUserLists()])
+  document.addEventListener('click', (e) => {
+    const target = e.target as HTMLElement
+    if (!target.closest('.list-dropdown-anchor')) {
+      showListDropdown.value = false
+    }
+  })
+})
 
 const formattedDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString('fr-FR', {
@@ -201,7 +237,7 @@ const getMediaTypeLabel = (type?: string) => {
               </span>
               <!-- User rating indicator -->
               <span v-if="userRating" class="rounded-md bg-emerald-500/20 px-3 py-1 text-sm font-semibold text-emerald-400 border border-emerald-500/30">
-                ✓ Votre note : {{ userRating }}/10
+                ✓ Votre note : {{ userRating?.score }}/10
               </span>
             </div>
 
@@ -224,7 +260,7 @@ const getMediaTypeLabel = (type?: string) => {
                   </div>
                   <div class="flex-1">
                     <p class="text-sm font-medium text-emerald-300">Vous avez noté ce média</p>
-                    <p class="text-xs text-emerald-400/70">Votre note : {{ userRating }}/10 ⭐</p>
+                    <p class="text-xs text-emerald-400/70">Votre note : {{ userRating?.score }}/10 ⭐</p>
                   </div>
                 </div>
 
@@ -283,12 +319,57 @@ const getMediaTypeLabel = (type?: string) => {
               </div>
             </div>
 
-            <NuxtLink
-              to="/home"
-              class="inline-flex items-center rounded-md bg-bg-tertiary px-4 py-2 text-sm font-medium text-text-primary transition-colors hover:bg-border-color"
+            <div class="flex flex-wrap items-center gap-3">
+              <NuxtLink
+                to="/home"
+                class="inline-flex items-center rounded-md bg-bg-tertiary px-4 py-2 text-sm font-medium text-text-primary transition-colors hover:bg-border-color"
+              >
+                ← Retour au catalogue
+              </NuxtLink>
+
+              <!-- Ajouter à une liste -->
+              <div v-if="isAuthenticated" class="relative list-dropdown-anchor">
+                <button
+                  @click="showListDropdown = !showListDropdown"
+                  class="inline-flex items-center gap-2 rounded-md bg-accent/20 border border-accent/30 px-4 py-2 text-sm font-medium text-accent transition-colors hover:bg-accent/30"
+                >
+                  <span>+ Ajouter à une liste</span>
+                </button>
+                <div
+                  v-if="showListDropdown"
+                  class="absolute left-0 top-full mt-1 z-30 w-56 rounded-xl glass border border-border-color shadow-xl"
+                >
+                  <div v-if="userLists.length === 0" class="px-4 py-3 text-sm text-text-secondary">
+                    Aucune liste.
+                    <NuxtLink to="/mylists" class="text-accent hover:underline ml-1">Créer une liste</NuxtLink>
+                  </div>
+                  <template v-else>
+                    <button
+                      v-for="list in userLists"
+                      :key="list.id"
+                      @click="handleAddToList(list.id, list.name)"
+                      class="w-full px-4 py-2.5 text-left text-sm text-text-primary hover:bg-bg-tertiary transition-colors first:rounded-t-xl last:rounded-b-xl"
+                    >
+                      {{ list.name }}
+                      <span class="ml-1 text-xs text-text-tertiary">({{ list.items?.length ?? 0 }})</span>
+                    </button>
+                  </template>
+                </div>
+              </div>
+            </div>
+
+            <!-- Feedback message -->
+            <div
+              v-if="listMessage"
+              :class="[
+                'mt-3 rounded-lg px-4 py-2 text-sm font-medium',
+                listMessageType === 'success'
+                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                  : 'bg-red-500/20 text-red-300 border border-red-500/30'
+              ]"
             >
-              ← Retour au catalogue
-            </NuxtLink>
+              {{ listMessage }}
+            </div>
           </div>
         </div>
       </div>
@@ -392,8 +473,8 @@ const getMediaTypeLabel = (type?: string) => {
             </div>
             <p class="text-text-secondary">{{ review.content }}</p>
             <div class="mt-2 flex items-center gap-2">
-              <span v-if="review.user" class="text-sm font-medium text-text-secondary">
-                {{ review.user.username }}
+              <span v-if="review.username" class="text-sm font-medium text-text-secondary">
+                {{ review.username }}
               </span>
               <span v-if="review.spoiler" class="rounded-md bg-yellow-500/20 px-2 py-0.5 text-xs font-semibold text-yellow-400">
                 ⚠️ Spoiler
