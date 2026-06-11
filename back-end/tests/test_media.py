@@ -115,7 +115,10 @@ class TestMedia:
         response = await client.get("/api/v1/media", headers=auth_headers)
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
-        assert isinstance(data, list)
+        assert isinstance(data, dict)
+        assert "items" in data
+        assert "total" in data
+        assert isinstance(data["items"], list)
 
     async def test_search_media(self, client, test_user, auth_headers):
         """Test searching media."""
@@ -133,4 +136,7 @@ class TestMedia:
         )
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
-        assert any("Searchable" in m.get("title", "") for m in data)
+        assert isinstance(data, dict)
+        assert "items" in data
+        assert isinstance(data["items"], list)
+        assert any("Searchable" in m.get("title", "") for m in data["items"])

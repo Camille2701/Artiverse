@@ -65,7 +65,7 @@ async def test_user(test_db) -> User:
 
 
 @pytest.fixture
-def test_user_token(test_user) -> str:
+async def test_user_token(test_user) -> str:
     """Create an access token for test user."""
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(

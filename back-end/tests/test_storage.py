@@ -57,9 +57,9 @@ class TestLocalStorage:
         target.parent.mkdir(parents=True)
         target.write_bytes(b"data")
 
-        assert await StorageService.delete_image("media/x.png") is True
+        assert StorageService.delete_image("media/x.png") is True
         assert not target.exists()
-        assert await StorageService.delete_image("media/missing.png") is False
+        assert StorageService.delete_image("media/missing.png") is False
 
 
 class TestS3Storage:
@@ -108,5 +108,5 @@ class TestS3Storage:
         monkeypatch.setattr(settings, "S3_PUBLIC_URL", "https://cdn.artiverse.app/")
         monkeypatch.setattr(storage_service, "_get_s3_client", lambda: fake)
 
-        assert await StorageService.delete_image("https://cdn.artiverse.app/covers/abc.png") is True
+        assert StorageService.delete_image("https://cdn.artiverse.app/covers/abc.png") is True
         assert fake.delete_calls[0]["Key"] == "covers/abc.png"
