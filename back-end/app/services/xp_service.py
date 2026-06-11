@@ -47,8 +47,8 @@ class XPService:
     @staticmethod
     def get_xp_progress(user: User) -> dict:
         """Get XP progress information for a user."""
-        current_level_xp = XPService.calculate_xp_for_level(user.level)
-        next_level_xp = XPService.calculate_xp_for_level(user.level + 1)
+        current_level_xp = XPService.calculate_xp_for_level(user.level - 1)
+        next_level_xp = XPService.calculate_xp_for_level(user.level)
         xp_in_current_level = user.experience_points - current_level_xp
         xp_needed_for_next_level = next_level_xp - current_level_xp
         progress_percentage = (xp_in_current_level / xp_needed_for_next_level) * 100

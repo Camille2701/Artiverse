@@ -106,7 +106,7 @@ onMounted(loadList)
               </span>
             </div>
           </div>
-          <NuxtLink to="/search" class="btn-primary px-5 py-2.5 text-sm self-start sm:self-auto">
+          <NuxtLink to="/explore" class="btn-primary px-5 py-2.5 text-sm self-start sm:self-auto">
             + Ajouter des médias
           </NuxtLink>
         </div>
@@ -180,7 +180,7 @@ onMounted(loadList)
         </div>
         <h3 class="mb-2 text-xl font-semibold text-text-primary font-display">Liste vide</h3>
         <p class="mb-6 text-sm text-text-secondary font-body">Ajoutez des médias depuis leur page de détail.</p>
-        <NuxtLink to="/search" class="btn-primary px-6 py-2.5">Parcourir le catalogue</NuxtLink>
+        <NuxtLink to="/explore" class="btn-primary px-6 py-2.5">Parcourir le catalogue</NuxtLink>
       </div>
     </div>
 

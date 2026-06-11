@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import get_db
-from app.models import User
+from app.models import User, Rating
 from app.schemas import ReviewResponse, ReviewCreate, ReviewUpdate
 from app.services import ReviewService, MediaService
 from app.dependencies.auth import get_current_user
@@ -46,18 +46,26 @@ async def get_media_reviews(
 
     reviews, total = await ReviewService.get_reviews_by_media(db, media_id, skip, limit)
 
-    # Bulk-fetch usernames
+    # Bulk-fetch usernames and ratings
     user_ids = list({r.user_id for r in reviews})
     usernames: dict[str, str] = {}
+    scores: dict[str, float] = {}
     if user_ids:
-        from sqlalchemy import select as sa_select
+        from sqlalchemy import select as sa_select, and_
         res = await db.execute(sa_select(User).where(User.id.in_(user_ids)))
         usernames = {u.id: u.username for u in res.scalars().all()}
+        res2 = await db.execute(
+            sa_select(Rating).where(
+                and_(Rating.user_id.in_(user_ids), Rating.media_id == media_id)
+            )
+        )
+        scores = {rt.user_id: rt.score for rt in res2.scalars().all()}
 
     items = []
     for r in reviews:
         data = ReviewResponse.model_validate(r).model_dump(mode="json")
         data["username"] = usernames.get(r.user_id)
+        data["score"] = scores.get(r.user_id)
         items.append(data)
 
     return {

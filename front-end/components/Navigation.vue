@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import AppLogo from '~/components/icons/AppLogo.vue';
 // @ts-ignore
 const { user, isAuthenticated, logout } = useAuth()
@@ -29,7 +29,7 @@ async function handleLogout() {
               class="inline-flex items-center rounded-md px-3 py-2 text-sm font-medium text-gray-500 transition-colors hover:bg-gray-100 hover:text-accent dark:text-text-secondary dark:hover:bg-bg-tertiary dark:hover:text-accent">
               Accueil
             </NuxtLink>
-            <NuxtLink v-if="isAuthenticated" to="/search"
+            <NuxtLink v-if="isAuthenticated" to="/explore"
               class="inline-flex items-center rounded-md px-3 py-2 text-sm font-medium text-gray-500 transition-colors hover:bg-gray-100 hover:text-accent dark:text-text-secondary dark:hover:bg-bg-tertiary dark:hover:text-accent">
               Catalogue
             </NuxtLink>
@@ -43,7 +43,7 @@ async function handleLogout() {
             </NuxtLink>
             <NuxtLink v-if="isAuthenticated" to="/feed"
               class="inline-flex items-center rounded-md px-3 py-2 text-sm font-medium text-gray-500 transition-colors hover:bg-gray-100 hover:text-accent dark:text-text-secondary dark:hover:bg-bg-tertiary dark:hover:text-accent">
-              Fil d'actualité
+              Fil d'actualitÃ©
             </NuxtLink>
           </div>
         </div>
@@ -65,7 +65,7 @@ async function handleLogout() {
 
             <button @click="handleLogout"
               class="rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-600 transition-all hover:bg-red-50 focus:outline-none dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20">
-              Déconnexion
+              DÃ©connexion
             </button>
           </div>
 
@@ -105,7 +105,7 @@ async function handleLogout() {
           Accueil
         </NuxtLink>
         <template v-if="isAuthenticated">
-          <NuxtLink to="/search" @click="isMenuOpen = false"
+          <NuxtLink to="/explore" @click="isMenuOpen = false"
             class="block rounded-lg px-3 py-2.5 text-base font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-accent dark:text-text-secondary dark:hover:bg-bg-tertiary dark:hover:text-accent">
             Catalogue
           </NuxtLink>
@@ -119,7 +119,7 @@ async function handleLogout() {
           </NuxtLink>
           <NuxtLink to="/feed" @click="isMenuOpen = false"
             class="block rounded-lg px-3 py-2.5 text-base font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-accent dark:text-text-secondary dark:hover:bg-bg-tertiary dark:hover:text-accent">
-            Fil d'actualité
+            Fil d'actualitÃ©
           </NuxtLink>
         </template>
       </div>
@@ -144,7 +144,7 @@ async function handleLogout() {
           </NuxtLink>
           <button @click="handleLogout"
             class="block w-full rounded-lg px-3 py-2 text-left text-sm font-medium text-red-500 transition-colors hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20">
-            Déconnexion
+            DÃ©connexion
           </button>
         </div>
       </div>

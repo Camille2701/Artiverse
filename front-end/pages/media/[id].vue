@@ -21,16 +21,28 @@ const media = ref<Media | null>(null)
 const suggestions = ref<Media[]>([])
 const reviews = ref<any[]>([])
 const userRating = ref<any>(null)
-const newReview = reactive({
-  title: '',
-  content: '',
-  spoiler: false
-})
+const newReview = reactive({ title: '', content: '', spoiler: false })
 const newRating = ref(0)
 const isSubmittingReview = ref(false)
 const isSubmittingRating = ref(false)
-const showReviewForm = ref(false)
 const reviewError = ref('')
+
+// Existing review by the current user (detected after load)
+const existingReview = ref<any>(null)
+
+function initFormFromExisting() {
+  if (!user.value) return
+  const mine = reviews.value.find(r => r.user_id === user.value!.id)
+  if (mine) {
+    existingReview.value = mine
+    newReview.title = mine.title
+    newReview.content = mine.content
+    newReview.spoiler = mine.spoiler
+  }
+  if (userRating.value?.score) {
+    newRating.value = userRating.value.score
+  }
+}
 
 // Add to list
 const userLists = ref<any[]>([])
@@ -84,76 +96,65 @@ async function fetchMediaDetails() {
         clearError()
       }
     }
+    initFormFromExisting()
   } catch (err: any) {
     error.value = err
   }
 }
 
-async function submitReview() {
-  if (!isAuthenticated.value) {
-    reviewError.value = 'Vous devez être connecté pour laisser un avis.'
+async function submitRatingAndReview() {
+  if (!isAuthenticated.value) return
+  if (newRating.value < 1 || newRating.value > 10) {
+    reviewError.value = 'Veuillez choisir une note entre 1 et 10.'
     return
   }
 
-  if (!newReview.title.trim() || !newReview.content.trim()) {
-    reviewError.value = 'Veuillez remplir tous les champs.'
+  const titleFilled = newReview.title.trim()
+  const contentFilled = newReview.content.trim()
+  const hasReview = titleFilled && contentFilled
+  if ((titleFilled || contentFilled) && !hasReview) {
+    reviewError.value = 'Veuillez remplir à la fois le titre et le contenu de l\'avis.'
     return
   }
 
-  isSubmittingReview.value = true
   reviewError.value = ''
+  isSubmittingRating.value = true
+  isSubmittingReview.value = !!hasReview
 
   try {
-    const review = await fetchWithAuth('/api/v1/reviews', {
+    // Note
+    await fetchWithAuth('/api/v1/ratings', {
       method: 'POST',
-      body: {
-        media_id: mediaId,
-        title: newReview.title,
-        content: newReview.content,
-        spoiler: newReview.spoiler
-      }
+      body: { media_id: mediaId, score: newRating.value }
     })
+    userRating.value = { score: newRating.value }
 
-    reviews.value.unshift(review)
-    newReview.title = ''
-    newReview.content = ''
-    newReview.spoiler = false
-    showReviewForm.value = false
+    // Avis : PATCH si existant, POST sinon
+    if (hasReview) {
+      if (existingReview.value) {
+        const updated = await fetchWithAuth(`/api/v1/reviews/${existingReview.value.id}`, {
+          method: 'PATCH',
+          body: { title: newReview.title, content: newReview.content, spoiler: newReview.spoiler }
+        })
+        const idx = reviews.value.findIndex(r => r.id === existingReview.value.id)
+        if (idx !== -1) reviews.value[idx] = { ...reviews.value[idx], ...updated }
+        existingReview.value = { ...existingReview.value, ...updated }
+      } else {
+        const review = await fetchWithAuth('/api/v1/reviews', {
+          method: 'POST',
+          body: { media_id: mediaId, title: newReview.title, content: newReview.content, spoiler: newReview.spoiler }
+        })
+        review.username = user.value?.username
+        review.score = newRating.value
+        reviews.value.unshift(review)
+        existingReview.value = review
+      }
+    }
   } catch (err: any) {
     reviewError.value = getErrorMessage(err)
   } finally {
-    isSubmittingReview.value = false
-  }
-}
-
-async function submitRating() {
-  if (!isAuthenticated.value) {
-    alert('Vous devez être connecté pour noter ce média.')
-    return
-  }
-
-  if (newRating.value < 1 || newRating.value > 10) {
-    alert('Veuillez noter entre 1 et 10.')
-    return
-  }
-
-  isSubmittingRating.value = true
-
-  try {
-    await fetchWithAuth('/api/v1/ratings', {
-      method: 'POST',
-      body: {
-        media_id: mediaId,
-        score: newRating.value
-      }
-    })
-
-    userRating.value = { score: newRating.value }
-    newRating.value = 0
-  } catch (err: any) {
-    alert(getErrorMessage(err))
-  } finally {
     isSubmittingRating.value = false
+    isSubmittingReview.value = false
   }
 }
 
@@ -245,83 +246,9 @@ const getMediaTypeLabel = (type?: string) => {
               {{ media.description }}
             </p>
 
-            <div class="mb-6 rounded-lg bg-bg-tertiary/50 p-4">
-              <h3 class="mb-3 font-semibold text-text-primary">Votre note</h3>
-              <div v-if="isAuthenticated">
-                <div v-if="userRating" class="flex items-center gap-2">
-                  <span class="text-lg font-semibold text-yellow-400">⭐ {{ userRating.score }}/10</span>
-                  <span class="text-sm text-text-secondary">Vous avez noté ce média</span>
-                </div>
-                <div v-else class="space-y-4">
-                <!-- Already rated indicator -->
-                <div v-if="userRating" class="flex items-center gap-3 rounded-lg bg-emerald-500/20 border border-emerald-500/30 px-4 py-3">
-                  <div class="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/30">
-                    <span class="text-emerald-400 text-sm">✓</span>
-                  </div>
-                  <div class="flex-1">
-                    <p class="text-sm font-medium text-emerald-300">Vous avez noté ce média</p>
-                    <p class="text-xs text-emerald-400/70">Votre note : {{ userRating?.score }}/10 ⭐</p>
-                  </div>
-                </div>
-
-                <!-- Rating slider -->
-                <div class="space-y-3">
-                  <div class="flex items-center justify-between">
-                    <label class="text-sm font-medium text-text-secondary">Votre note</label>
-                    <span class="text-2xl font-bold text-accent font-display">{{ newRating }}/10</span>
-                  </div>
-
-                  <div class="relative">
-                    <input
-                      v-model.number="newRating"
-                      type="range"
-                      min="1"
-                      max="10"
-                      step="1"
-                      class="w-full h-3 rounded-full appearance-none bg-bg-tertiary cursor-pointer"
-                      :class="newRating >= 8 ? 'accent-green-500' : newRating >= 6 ? 'accent-yellow-500' : 'accent-red-500'"
-                    />
-
-                    <!-- Star indicators -->
-                    <div class="flex justify-between mt-2 text-xs text-text-tertiary font-medium">
-                      <span>1</span>
-                      <span>2</span>
-                      <span>3</span>
-                      <span>4</span>
-                      <span>5</span>
-                      <span>6</span>
-                      <span>7</span>
-                      <span>8</span>
-                      <span>9</span>
-                      <span>10</span>
-                    </div>
-                  </div>
-
-                  <div class="flex items-center justify-between text-xs">
-                    <span class="text-red-400 font-medium">Mauvais</span>
-                    <span class="text-yellow-400 font-medium">Moyen</span>
-                    <span class="text-green-400 font-medium">Excellent</span>
-                  </div>
-                </div>
-
-                <button
-                  @click="submitRating"
-                  :disabled="isSubmittingRating"
-                  class="btn-primary w-full px-4 py-3 text-sm disabled:opacity-50"
-                >
-                  {{ userRating ? 'Mettre à jour la note' : 'Noter ce média' }}
-                </button>
-              </div>
-              </div>
-              <div v-else class="text-sm text-text-secondary">
-                <NuxtLink to="/users/login" class="text-accent hover:text-accent-hover">Connectez-vous</NuxtLink>
-                pour noter ce média.
-              </div>
-            </div>
-
             <div class="flex flex-wrap items-center gap-3">
               <NuxtLink
-                to="/home"
+                to="/explore"
                 class="inline-flex items-center rounded-md bg-bg-tertiary px-4 py-2 text-sm font-medium text-text-primary transition-colors hover:bg-border-color"
               >
                 ← Retour au catalogue
@@ -374,6 +301,109 @@ const getMediaTypeLabel = (type?: string) => {
         </div>
       </div>
 
+      <!-- ===== AVIS + NOTE ===== -->
+      <div class="glass rounded-xl p-6 sm:p-8">
+        <h2 class="mb-6 text-2xl font-bold text-text-primary">Avis</h2>
+
+        <!-- Formulaire connecté : note + avis ensemble -->
+        <div v-if="isAuthenticated" class="mb-8 rounded-xl border border-border-color bg-bg-tertiary/30 p-5 space-y-5">
+          <h3 class="text-base font-semibold text-text-primary">
+            {{ (userRating || existingReview) ? 'Modifier votre évaluation' : 'Évaluer ce média' }}
+          </h3>
+
+          <!-- Note -->
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <label class="text-sm font-medium text-text-secondary">Note</label>
+              <span class="text-xl font-bold text-accent font-display">{{ newRating || (userRating?.score ?? 0) }}/10</span>
+            </div>
+            <input
+              v-model.number="newRating"
+              type="range" min="1" max="10" step="1"
+              class="w-full h-3 rounded-full appearance-none bg-bg-tertiary cursor-pointer"
+              :class="(newRating || userRating?.score) >= 8 ? 'accent-green-500' : (newRating || userRating?.score) >= 6 ? 'accent-yellow-500' : 'accent-red-500'"
+            />
+            <div class="flex justify-between text-xs text-text-tertiary font-medium">
+              <span v-for="n in 10" :key="n">{{ n }}</span>
+            </div>
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-red-400 font-medium">Mauvais</span>
+              <span class="text-yellow-400 font-medium">Moyen</span>
+              <span class="text-green-400 font-medium">Excellent</span>
+            </div>
+          </div>
+
+          <!-- Avis (titre + contenu + spoiler) -->
+          <div class="space-y-3 border-t border-border-color pt-4">
+            <p class="text-sm text-text-secondary">Ajouter un avis <span class="text-text-tertiary">(optionnel)</span></p>
+            <input
+              v-model="newReview.title"
+              type="text"
+              placeholder="Titre de votre avis"
+              class="block w-full rounded-lg border border-border-color bg-bg-secondary px-3 py-2 text-sm text-text-primary placeholder-text-tertiary outline-none focus:border-accent"
+            />
+            <textarea
+              v-model="newReview.content"
+              rows="3"
+              placeholder="Partagez votre opinion..."
+              class="block w-full rounded-lg border border-border-color bg-bg-secondary px-3 py-2 text-sm text-text-primary placeholder-text-tertiary outline-none focus:border-accent resize-none"
+            ></textarea>
+            <label class="flex items-center gap-2 cursor-pointer select-none">
+              <input v-model="newReview.spoiler" type="checkbox" class="h-4 w-4 rounded border-border-color" />
+              <span class="text-sm text-text-secondary">Contient des spoilers</span>
+            </label>
+          </div>
+
+          <div v-if="reviewError" class="rounded-lg bg-red-500/10 border border-red-500/30 px-4 py-2">
+            <p class="text-sm text-red-400">{{ reviewError }}</p>
+          </div>
+
+          <!-- Actions -->
+          <div class="flex gap-2 pt-1">
+            <button
+              @click="submitRatingAndReview"
+              :disabled="isSubmittingRating || isSubmittingReview"
+              class="btn-primary px-5 py-2.5 text-sm disabled:opacity-50"
+            >
+              {{ (isSubmittingRating || isSubmittingReview) ? 'Publication...' : (userRating ? 'Mettre à jour' : 'Publier') }}
+            </button>
+          </div>
+        </div>
+
+        <div v-else class="mb-6 rounded-xl border border-border-color bg-bg-tertiary/30 px-5 py-4 text-sm text-text-secondary">
+          <NuxtLink to="/users/login" class="text-accent hover:text-accent-hover font-medium">Connectez-vous</NuxtLink>
+          pour noter ce média et laisser un avis.
+        </div>
+
+        <!-- Liste des avis -->
+        <div v-if="reviews.length > 0" class="space-y-4">
+          <div
+            v-for="review in reviews"
+            :key="review.id"
+            class="rounded-lg border border-border-color bg-bg-tertiary/30 p-4"
+          >
+            <div class="mb-1 flex items-start justify-between gap-2">
+              <h4 class="font-semibold text-text-primary">{{ review.title }}</h4>
+              <div class="flex items-center gap-2 shrink-0">
+                <span v-if="review.score" class="rounded-md bg-yellow-500/20 px-2 py-0.5 text-xs font-bold text-yellow-400">
+                  ⭐ {{ review.score }}/10
+                </span>
+                <span class="text-xs text-text-tertiary">{{ formattedDate(review.created_at) }}</span>
+              </div>
+            </div>
+            <p class="text-sm text-text-secondary">{{ review.content }}</p>
+            <div class="mt-2 flex items-center gap-2">
+              <span v-if="review.username" class="text-xs font-medium text-accent">{{ review.username }}</span>
+              <span v-if="review.spoiler" class="rounded-md bg-yellow-500/20 px-2 py-0.5 text-xs font-semibold text-yellow-400">⚠️ Spoiler</span>
+            </div>
+          </div>
+        </div>
+        <div v-else class="py-8 text-center text-sm text-text-tertiary">
+          Aucun avis pour l'instant. Soyez le premier !
+        </div>
+      </div>
+
+      <!-- ===== SUGGESTIONS ===== -->
       <div v-if="suggestions.length > 0" class="glass rounded-xl p-6 sm:p-8">
         <h2 class="mb-6 text-2xl font-bold text-text-primary">Vous aimerez aussi</h2>
         <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
@@ -395,96 +425,6 @@ const getMediaTypeLabel = (type?: string) => {
               <p class="mt-1 text-xs text-text-tertiary">{{ getMediaTypeLabel(item.type) }}</p>
             </div>
           </NuxtLink>
-        </div>
-      </div>
-
-      <div class="glass rounded-xl p-6 sm:p-8">
-        <div class="mb-6 flex items-center justify-between">
-          <h2 class="text-2xl font-bold text-text-primary">Avis</h2>
-          <button
-            v-if="isAuthenticated && !showReviewForm"
-            @click="showReviewForm = true"
-            class="btn-primary px-4 py-2 text-sm"
-          >
-            + Ajouter un avis
-          </button>
-        </div>
-
-        <div v-if="showReviewForm" class="mb-6 rounded-lg bg-bg-tertiary/50 p-4">
-          <h3 class="mb-4 text-lg font-semibold text-text-primary">Rédiger un avis</h3>
-          <div class="space-y-4">
-            <div>
-              <label class="block text-sm font-medium text-text-secondary">Titre</label>
-              <input
-                v-model="newReview.title"
-                type="text"
-                placeholder="Titre de votre avis"
-                class="mt-1 block w-full rounded-md border border-border-color bg-bg-secondary px-3 py-2 text-sm text-text-primary"
-              />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-text-secondary">Votre avis</label>
-              <textarea
-                v-model="newReview.content"
-                rows="4"
-                placeholder="Partagez votre opinion..."
-                class="mt-1 block w-full rounded-md border border-border-color bg-bg-secondary px-3 py-2 text-sm text-text-primary"
-              ></textarea>
-            </div>
-            <div class="flex items-center gap-2">
-              <input
-                v-model="newReview.spoiler"
-                type="checkbox"
-                id="spoiler"
-                class="h-4 w-4 rounded border-border-color"
-              />
-              <label for="spoiler" class="text-sm text-text-secondary">Contient des spoilers</label>
-            </div>
-            <div v-if="reviewError" class="rounded-md bg-red-500/10 p-3">
-              <p class="text-sm text-red-400">{{ reviewError }}</p>
-            </div>
-            <div class="flex gap-2">
-              <button
-                @click="submitReview"
-                :disabled="isSubmittingReview"
-                class="btn-primary px-4 py-2 text-sm disabled:opacity-50"
-              >
-                {{ isSubmittingReview ? 'Publication...' : 'Publier' }}
-              </button>
-              <button
-                @click="showReviewForm = false"
-                class="rounded-md border border-border-color px-4 py-2 text-sm font-medium text-text-secondary hover:bg-bg-tertiary"
-              >
-                Annuler
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div v-if="reviews.length > 0" class="space-y-4">
-          <div
-            v-for="review in reviews"
-            :key="review.id"
-            class="rounded-lg border border-border-color bg-bg-tertiary/30 p-4"
-          >
-            <div class="mb-2 flex items-center justify-between">
-              <h4 class="font-semibold text-text-primary">{{ review.title }}</h4>
-              <span class="text-sm text-text-tertiary">{{ formattedDate(review.created_at) }}</span>
-            </div>
-            <p class="text-text-secondary">{{ review.content }}</p>
-            <div class="mt-2 flex items-center gap-2">
-              <span v-if="review.username" class="text-sm font-medium text-text-secondary">
-                {{ review.username }}
-              </span>
-              <span v-if="review.spoiler" class="rounded-md bg-yellow-500/20 px-2 py-0.5 text-xs font-semibold text-yellow-400">
-                ⚠️ Spoiler
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div v-else class="py-8 text-center text-text-tertiary">
-          Aucun avis pour ce média. Soyez le premier à donner votre avis !
         </div>
       </div>
     </div>

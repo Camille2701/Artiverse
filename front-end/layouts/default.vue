@@ -21,6 +21,27 @@ const profilePath = computed(() =>
   user.value?.id ? `/users/${user.value.id}` : '/users/profile'
 )
 
+// Navbar search
+const searchOpen = ref(false)
+const searchQuery = ref('')
+const searchInput = ref<HTMLInputElement | null>(null)
+
+async function openSearch() {
+  searchOpen.value = true
+  await nextTick()
+  searchInput.value?.focus()
+}
+
+function closeSearch() {
+  searchOpen.value = false
+  searchQuery.value = ''
+}
+
+function submitSearch() {
+  const q = searchQuery.value.trim()
+  closeSearch()
+  router.push(q ? `/explore?q=${encodeURIComponent(q)}` : '/explore')
+}
 </script>
 
 <template>
@@ -44,17 +65,58 @@ const profilePath = computed(() =>
         </div>
 
         <div class="flex flex-wrap items-center gap-1 sm:gap-2">
-          <NuxtLink to="/home" class="nav-link text-sm px-3 py-2 rounded-lg hover:bg-bg-secondary/50 transition-all duration-300">
+          <NuxtLink to="/explore" class="nav-link text-sm px-3 py-2 rounded-lg hover:bg-bg-secondary/50 transition-all duration-300">
             Catalogue
-          </NuxtLink>
-          <NuxtLink to="/search" class="nav-link text-sm px-3 py-2 rounded-lg hover:bg-bg-secondary/50 transition-all duration-300">
-            Recherche
           </NuxtLink>
           <template v-if="isAuthenticated">
             <NuxtLink to="/mylists" class="nav-link text-sm px-3 py-2 rounded-lg hover:bg-bg-secondary/50 transition-all duration-300">
               Mes listes
             </NuxtLink>
           </template>
+
+          <!-- Navbar search -->
+          <div class="relative flex items-center">
+            <Transition name="search-expand">
+              <form v-if="searchOpen" @submit.prevent="submitSearch" class="flex items-center">
+                <input
+                  ref="searchInput"
+                  v-model="searchQuery"
+                  type="text"
+                  placeholder="Rechercher..."
+                  class="w-40 sm:w-56 rounded-l-lg border border-border-color bg-bg-secondary px-3 py-1.5 text-sm text-text-primary placeholder-text-tertiary outline-none focus:border-accent transition-all duration-200"
+                  @keydown.escape="closeSearch"
+                />
+                <button
+                  type="submit"
+                  class="rounded-r-lg border border-l-0 border-border-color bg-bg-secondary px-3 py-1.5 text-text-secondary hover:text-accent transition-colors"
+                >
+                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/>
+                  </svg>
+                </button>
+              </form>
+            </Transition>
+            <button
+              v-if="!searchOpen"
+              @click="openSearch"
+              class="nav-link p-2 rounded-lg hover:bg-bg-secondary/50 transition-all duration-300 text-text-secondary hover:text-text-primary"
+              title="Rechercher"
+            >
+              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/>
+              </svg>
+            </button>
+            <button
+              v-if="searchOpen"
+              @click="closeSearch"
+              class="ml-1 p-1.5 rounded-lg text-text-tertiary hover:text-text-primary transition-colors"
+              title="Fermer"
+            >
+              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </button>
+          </div>
 
           <ThemeToggle />
 
@@ -88,7 +150,6 @@ const profilePath = computed(() =>
     </header>
 
     <div class="container mx-auto px-4 py-8 flex-grow">
-      <!-- Main Content -->
       <main class="max-w-7xl mx-auto">
         <slot />
       </main>
@@ -125,3 +186,16 @@ const profilePath = computed(() =>
     </footer>
   </div>
 </template>
+
+<style scoped>
+.search-expand-enter-active,
+.search-expand-leave-active {
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.search-expand-enter-from,
+.search-expand-leave-to {
+  opacity: 0;
+  transform: scaleX(0.8);
+  transform-origin: right;
+}
+</style>

@@ -11,47 +11,39 @@ useHead({
   ]
 })
 
-const { data: mediaList, pending, error } = await useFetch<any[]>('/api/media')
+const { data: mediaList } = await useFetch<any[]>('/api/media')
 
-const featuredMedia = computed(() => {
-  const allMedia = mediaList.value || []
-  return allMedia.slice(0, 3)
-})
+const featuredMedia = computed(() => (mediaList.value || []).slice(0, 3))
 
 const categories = [
-  { label: 'Films', type: MediaType.Movie, icon: '🎬' },
-  { label: 'Séries', type: MediaType.Serie, icon: '📺' },
-  { label: 'Jeux vidéo', type: MediaType.Game, icon: '🎮' },
-  { label: 'Livres', type: MediaType.Book, icon: '📚' }
+  { label: 'Films',      type: MediaType.Movie, icon: '🎬' },
+  { label: 'Séries',     type: MediaType.Serie, icon: '📺' },
+  { label: 'Jeux vidéo', type: MediaType.Game,  icon: '🎮' },
+  { label: 'Livres',     type: MediaType.Book,  icon: '📚' },
 ]
 
 const getMediaTypeLabel = (type: string): string => {
   const labels: Record<string, string> = {
-    'movie': 'Film',
-    'tv_series': 'Série',
-    'video_game': 'Jeu vidéo',
-    'book': 'Livre'
+    'movie': 'Film', 'tv_series': 'Série', 'video_game': 'Jeu vidéo', 'book': 'Livre'
   }
   return labels[type] || type
 }
 
-const getMediaByType = (type: MediaType) => {
-  const allMedia = mediaList.value || []
-  return allMedia.filter(media =>
-    media.type === type ||
-    (type === MediaType.Movie && media.type === 'movie') ||
-    (type === MediaType.Serie && media.type === 'tv_series') ||
-    (type === MediaType.Game && media.type === 'video_game') ||
-    (type === MediaType.Book && media.type === 'book')
-  ).slice(0, 4)
-}
+// Real counts from backend
+const categoryCounts = ref<Record<string, number>>({})
+onMounted(async () => {
+  const types = ['movie', 'tv_series', 'video_game', 'book']
+  const results = await Promise.all(
+    types.map(t => $fetch<{ total: number }>(`/api/v1/media?media_type=${t}&limit=1`).catch(() => ({ total: 0 })))
+  )
+  types.forEach((t, i) => { categoryCounts.value[t] = (results[i] as any).total ?? 0 })
+})
 </script>
 
 <template>
   <div>
     <!-- Hero Section -->
     <div class="relative overflow-hidden bg-gradient-to-br from-bg-primary via-bg-secondary to-bg-primary">
-      <!-- Animated background elements -->
       <div class="absolute inset-0 overflow-hidden">
         <div class="absolute -top-40 -right-40 w-96 h-96 bg-accent-movie/20 rounded-full blur-3xl animate-pulse-slow"></div>
         <div class="absolute -bottom-40 -left-40 w-96 h-96 bg-accent-series/20 rounded-full blur-3xl animate-pulse-slow" style="animation-delay: 1s;"></div>
@@ -73,7 +65,7 @@ const getMediaByType = (type: MediaType) => {
           <div class="mt-10 flex flex-col sm:flex-row justify-center gap-4">
             <template v-if="isAuthenticated">
               <NuxtLink
-                to="/home"
+                to="/explore"
                 class="btn-primary px-8 py-4 text-lg font-semibold flex items-center justify-center gap-2 group"
               >
                 Explorer le catalogue
@@ -99,7 +91,7 @@ const getMediaByType = (type: MediaType) => {
                 </svg>
               </NuxtLink>
               <NuxtLink
-                to="/home"
+                to="/explore"
                 class="px-8 py-4 text-lg font-semibold text-text-primary border-2 border-border-color rounded-xl hover:border-border-color-light hover:bg-bg-secondary/50 transition-all duration-300 flex items-center justify-center gap-2"
               >
                 <span>🔍</span>
@@ -162,14 +154,14 @@ const getMediaByType = (type: MediaType) => {
           <NuxtLink
             v-for="category in categories"
             :key="category.label"
-            :to="`/home?category=${category.type}`"
+            :to="`/explore?type=${category.type}`"
             class="group relative overflow-hidden rounded-2xl glass p-8 transition-all duration-300 hover:scale-105 hover:shadow-2xl"
           >
             <div class="relative z-10">
               <div class="text-5xl mb-4 transition-transform duration-300 group-hover:scale-110">{{ category.icon }}</div>
               <h3 class="text-2xl font-bold text-text-primary font-display">{{ category.label }}</h3>
               <p class="mt-2 text-sm text-text-secondary font-body">
-                {{ getMediaByType(category.type).length }} média{{ getMediaByType(category.type).length > 1 ? 's' : '' }}
+                {{ categoryCounts[category.type] ?? '…' }} média{{ (categoryCounts[category.type] ?? 0) > 1 ? 's' : '' }}
               </p>
             </div>
             <div class="absolute inset-0 bg-gradient-to-br from-accent-movie/10 to-accent-series/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
@@ -186,7 +178,9 @@ const getMediaByType = (type: MediaType) => {
       </div>
       <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <div class="stat-card">
-          <div class="text-4xl font-extrabold gradient-text font-display">{{ mediaList?.length || 0 }}</div>
+          <div class="text-4xl font-extrabold gradient-text font-display">
+            {{ Object.values(categoryCounts).reduce((a, b) => a + b, 0) || '…' }}
+          </div>
           <div class="mt-2 text-sm text-text-secondary font-body">Médias disponibles</div>
         </div>
         <div class="stat-card">
@@ -200,35 +194,6 @@ const getMediaByType = (type: MediaType) => {
         <div class="stat-card">
           <div class="text-4xl font-extrabold text-accent-book font-display">100%</div>
           <div class="mt-2 text-sm text-text-secondary font-body">Gratuit</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Loading State -->
-    <div v-if="pending" class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-      <div class="flex flex-col items-center justify-center py-20">
-        <div class="spinner !h-12 !w-12 !border-4"></div>
-        <p class="mt-4 text-text-secondary font-body">Chargement...</p>
-      </div>
-    </div>
-
-    <!-- Error State -->
-    <div v-else-if="error" class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-      <div class="glass rounded-xl p-6 border border-red-500/30">
-        <div class="flex items-start gap-4">
-          <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-red-500/20">
-            <span class="text-red-400">⚠️</span>
-          </div>
-          <div class="flex-1">
-            <h3 class="text-lg font-semibold text-red-400">Erreur de chargement</h3>
-            <p class="mt-2 text-sm text-red-300">{{ error.message }}</p>
-            <button
-              @click="refresh()"
-              class="mt-4 btn-primary text-sm px-4 py-2"
-            >
-              Réessayer
-            </button>
-          </div>
         </div>
       </div>
     </div>
@@ -261,7 +226,7 @@ const getMediaByType = (type: MediaType) => {
           </div>
           <div v-else class="mt-10">
             <NuxtLink
-              to="/home"
+              to="/explore"
               class="btn-primary px-8 py-4 text-lg font-semibold inline-flex items-center justify-center gap-2"
             >
               Continuer l'exploration

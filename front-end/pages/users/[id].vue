@@ -190,13 +190,25 @@ async function handleLogout() {
           <div class="flex-1">
             <h1 class="mb-2 text-3xl font-bold text-text-primary font-display sm:text-4xl">{{ user.username }}</h1>
             <p v-if="user.bio" class="mb-4 text-text-secondary font-body">{{ user.bio }}</p>
-            <div class="flex flex-wrap gap-3">
-              <span class="px-4 py-1.5 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 text-white text-sm font-semibold font-display">
-                Niveau {{ user.level }}
-              </span>
-              <span class="px-4 py-1.5 rounded-full bg-gradient-to-r from-purple-500 to-purple-600 text-white text-sm font-semibold font-display">
-                {{ user.experience_points }} XP
-              </span>
+            <!-- XP progress bar -->
+            <div class="w-full max-w-sm">
+              <div class="flex justify-between text-xs text-text-tertiary mb-1.5">
+                <span class="font-semibold text-text-secondary">Niv. {{ user.level }}</span>
+                <span>{{ user.experience_points }} / {{ 100 * user.level ** 2 }} XP</span>
+                <span class="font-semibold text-text-secondary">Niv. {{ user.level + 1 }}</span>
+              </div>
+              <div class="h-2.5 w-full rounded-full overflow-hidden" style="background: rgba(255,255,255,0.08)">
+                <div
+                  class="h-full rounded-full transition-all duration-500"
+                  style="background: linear-gradient(90deg, #3b82f6, #a855f7)"
+                  :style="{
+                    width: Math.min(100, Math.max(2,
+                      ((user.experience_points - 100 * (user.level - 1) ** 2) /
+                       (100 * user.level ** 2 - 100 * (user.level - 1) ** 2)) * 100
+                    )) + '%'
+                  }"
+                ></div>
+              </div>
             </div>
           </div>
         </div>
@@ -389,7 +401,7 @@ async function handleLogout() {
           <div class="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-bg-tertiary/50 text-4xl">⭐</div>
           <h3 class="mb-2 text-xl font-semibold text-text-primary font-display">Aucun média noté</h3>
           <p class="text-sm text-text-secondary font-body">Notez des films, séries, jeux ou livres pour les voir apparaître ici.</p>
-          <NuxtLink to="/search" class="btn-primary mt-6 inline-block px-6 py-2.5">Parcourir le catalogue</NuxtLink>
+          <NuxtLink to="/explore" class="btn-primary mt-6 inline-block px-6 py-2.5">Parcourir le catalogue</NuxtLink>
         </div>
 
         <!-- Sections par type -->

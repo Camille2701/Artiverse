@@ -5,17 +5,17 @@ export default defineEventHandler(async (event): Promise<Media[]> => {
     const backendUrl = process.env.BACKEND_URL || 'http://localhost:8000';
     // Request a high limit: the backend list endpoint defaults to 10 items,
     // which would truncate the catalog and hide whole media types.
-    const response = await $fetch<Media[]>(`${backendUrl}/api/v1/media?limit=100`);
+    const response = await $fetch<any>(`${backendUrl}/api/v1/media?limit=100`);
+    const items: any[] = Array.isArray(response) ? response : (response?.items ?? []);
 
-    // Transform backend response to frontend format if needed
-    return response.map((media: any) => ({
+    return items.map((media: any) => ({
       id: media.id,
       title: media.title,
-      type: media.type as MediaType,
-      description: media.description || '',
-      rating: media.rating || 0,
-      releaseDate: media.releaseDate || '',
-      image: media.image || ''
+      type: (media.media_type ?? media.type) as MediaType,
+      description: media.synopsis ?? media.description ?? '',
+      rating: media.average_rating ?? media.rating ?? 0,
+      releaseDate: media.release_date ?? media.releaseDate ?? '',
+      image: media.cover_image ?? media.image ?? ''
     }));
   } catch (error) {
     console.error('Failed to fetch media from backend:', error);

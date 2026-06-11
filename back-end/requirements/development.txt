@@ -167,8 +167,14 @@ typing-extensions==4.15.0
     #   pydantic
     #   pydantic-core
     #   sqlalchemy
+pandas==2.2.1
+    # via -r requirements/development.in
+requests==2.32.3
+    # via -r requirements/base.in
 urllib3==2.7.0
-    # via botocore
+    # via
+    #   botocore
+    #   requests
 uvicorn[standard]==0.24.0
     # via -r requirements/base.in
 watchfiles==1.2.0

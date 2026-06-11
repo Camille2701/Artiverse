@@ -131,25 +131,19 @@ class StatisticsService:
             for media, score in top_rated
         ]
 
-        # Most reviewed media types
-        total_interactions = total_reviews + total_ratings
+        # Taste distribution — based on ratings only (one rating = one media consumed)
         taste_distribution = {}
+        total_rated = sum(
+            ratings_by_type_dict.get(mt.value, {}).get('count', 0)
+            for mt in MediaType
+        )
 
         for media_type in MediaType:
-            type_reviews = reviews_by_type_dict.get(media_type.value, 0)
-            type_ratings = ratings_by_type_dict.get(media_type.value, {}).get('count', 0)
-            type_total = type_reviews + type_ratings
-
-            if total_interactions > 0:
-                taste_distribution[media_type.value] = {
-                    'total': type_total,
-                    'percentage': round((type_total / total_interactions) * 100, 1)
-                }
-            else:
-                taste_distribution[media_type.value] = {
-                    'total': type_total,
-                    'percentage': 0
-                }
+            count = ratings_by_type_dict.get(media_type.value, {}).get('count', 0)
+            taste_distribution[media_type.value] = {
+                'total': count,
+                'percentage': round((count / total_rated) * 100, 1) if total_rated > 0 else 0
+            }
 
         return {
             'user_id': user_id,
@@ -157,7 +151,7 @@ class StatisticsService:
             'total_ratings': total_ratings,
             'total_lists': total_lists,
             'total_media_in_lists': total_media_in_lists,
-            'total_interactions': total_interactions,
+            'total_interactions': total_reviews + total_ratings,
             'reviews_by_type': reviews_by_type_dict,
             'ratings_by_type': ratings_by_type_dict,
             'activity_timeline': activity_timeline,
