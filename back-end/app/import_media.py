@@ -133,7 +133,7 @@ class TMDBImporter:
     def format_tv_show(self, show: dict) -> dict:
         """Format TMDb TV show data for Artiverse."""
         return {
-            'media_type': MediaType.SERIE,
+            'media_type': MediaType.TV_SERIES,
             'title': show.get('name', ''),
             'original_title': show.get('original_name'),
             'synopsis': show.get('overview', ''),
@@ -221,7 +221,7 @@ class RAWGImporter:
     def format_game(self, game: dict) -> dict:
         """Format RAWG game data for Artiverse."""
         return {
-            'media_type': MediaType.GAME,
+            'media_type': MediaType.VIDEO_GAME,
             'title': game.get('name', ''),
             'original_title': None,
             'synopsis': game.get('description_raw', '')[:1000],  # Limit description length
@@ -290,7 +290,7 @@ class GoodReadsImporter:
             'release_date': self._parse_year(year),
             'cover_image': self._get_cover_image(book, isbn),
             'banner_image': None,
-            'average_rating: 0,
+            'average_rating': 0,
             'popularity_score': 0,
             'genres': [],
             'creators': authors if isinstance(authors, list) else [str(authors)],
@@ -413,7 +413,7 @@ async def import_sample_data():
             'popularity_score': 92.0
         },
         {
-            'media_type': MediaType.SERIE,
+            'media_type': MediaType.TV_SERIES,
             'title': 'Breaking Bad',
             'synopsis': 'A chemistry teacher diagnosed with lung cancer turns to manufacturing and selling methamphetamine.',
             'release_date': datetime(2008, 1, 20),
@@ -426,7 +426,7 @@ async def import_sample_data():
             'popularity_score': 97.0
         },
         {
-            'media_type': MediaType.GAME,
+            'media_type': MediaType.VIDEO_GAME,
             'title': 'The Legend of Zelda: Breath of the Wild',
             'synopsis': 'Link awakens from a deep sleep and must explore the wilds of Hyrule to stop Calamity Ganon.',
             'release_date': datetime(2017, 3, 3),

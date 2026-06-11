@@ -29,7 +29,8 @@
       "Bash(docker run *)",
       "Bash(grep -vE \"Deprecation|on_event|utcnow|Lifespan|Read more|docs|^\\\\s*$|warnings\")",
       "Bash(docker-compose -f /c/Workspace/Artiverse/back-end/docker-compose.yml config)",
-      "Bash(docker-compose exec -T backend python -c ' *)"
+      "Bash(docker-compose exec -T backend python -c ' *)",
+      "Bash(docker compose *)"
     ]
   }
 }
