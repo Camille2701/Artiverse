@@ -15,5 +15,5 @@ ruff==0.1.9
 mypy==1.8.0
 
 # Type stubs for mypy
-types-python-jose==3.3.0.5
-types-requests==2.31.0.9
+types-python-jose>=3.3.4
+types-requests>=2.31.0
