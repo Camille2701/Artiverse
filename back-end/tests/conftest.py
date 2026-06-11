@@ -65,8 +65,10 @@ async def test_user(test_db) -> User:
 
 
 @pytest.fixture
-async def test_user_token(test_user) -> str:
+async def test_user_token(test_user, test_db) -> str:
     """Create an access token for test user."""
+    # Refresh user to ensure we have access to its attributes in this async context
+    await test_db.refresh(test_user)
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"sub": test_user.id},
@@ -76,7 +78,7 @@ async def test_user_token(test_user) -> str:
 
 
 @pytest.fixture
-def auth_headers(test_user_token) -> dict:
+async def auth_headers(test_user_token) -> dict:
     """Get authorization headers with token."""
     return {"Authorization": f"Bearer {test_user_token}"}
 

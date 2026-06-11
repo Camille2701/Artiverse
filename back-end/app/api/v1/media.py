@@ -291,7 +291,7 @@ async def update_media(
             detail="Media not found"
         )
     
-    update_data = media_update.dict(exclude_unset=True)
+    update_data = media_update.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         setattr(media, field, value)
 

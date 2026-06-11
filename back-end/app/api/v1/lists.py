@@ -73,7 +73,7 @@ async def update_list(
             detail="Not authorized to update this list"
         )
     
-    update_data = list_update.dict(exclude_unset=True)
+    update_data = list_update.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         setattr(user_list, field, value)
 

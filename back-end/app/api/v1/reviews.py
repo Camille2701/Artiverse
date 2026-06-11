@@ -116,7 +116,7 @@ async def update_review(
             detail="Not authorized to update this review"
         )
     
-    update_data = review_update.dict(exclude_unset=True)
+    update_data = review_update.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         setattr(review, field, value)
 
