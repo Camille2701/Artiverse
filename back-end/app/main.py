@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -6,14 +7,30 @@ from pathlib import Path
 
 from app.core.config import settings
 from app.api import router
-from app.db import engine
+from app.db.session import engine
 from app.db.base import Base
+from app.db.schema import ensure_schema_updates
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Application lifespan manager for startup/shutdown events."""
+    # Startup: create tables, then patch existing ones with any new columns
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+        await ensure_schema_updates(conn)
+
+    yield  # Application is running
+
+    # Shutdown: Dispose database connections
+    await engine.dispose()
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
     docs_url=f"{settings.API_V1_STR}/docs",
     redoc_url=f"{settings.API_V1_STR}/redoc",
+    lifespan=lifespan  # Replace deprecated @app.on_event
 )
 
 # Mount static files for uploads
@@ -45,12 +62,6 @@ async def http_exception_handler(request, exc):
 
 # Include routers
 app.include_router(router)
-
-
-@app.on_event("startup")
-def on_startup():
-    """Create database tables on application startup."""
-    Base.metadata.create_all(bind=engine)
 
 
 # Health check endpoints

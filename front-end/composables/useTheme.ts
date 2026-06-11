@@ -9,7 +9,7 @@ export const useTheme = () => {
       // Use system preference as fallback
       return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
     }
-    return 'light'
+    return 'dark'
   })
 
   const isDark = computed(() => theme.value === 'dark')

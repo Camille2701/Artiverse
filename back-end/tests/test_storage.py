@@ -50,16 +50,16 @@ class TestLocalStorage:
             await StorageService.upload_image(_upload_file("huge.jpg", big))
         assert exc.value.status_code == 400
 
-    def test_delete_local_file(self, tmp_path, monkeypatch):
+    async def test_delete_local_file(self, tmp_path, monkeypatch):
         monkeypatch.setattr(settings, "STORAGE_BACKEND", "local")
         monkeypatch.setattr(storage_service, "UPLOAD_DIR", tmp_path)
         target = tmp_path / "media" / "x.png"
         target.parent.mkdir(parents=True)
         target.write_bytes(b"data")
 
-        assert StorageService.delete_image("media/x.png") is True
+        assert await StorageService.delete_image("media/x.png") is True
         assert not target.exists()
-        assert StorageService.delete_image("media/missing.png") is False
+        assert await StorageService.delete_image("media/missing.png") is False
 
 
 class TestS3Storage:
@@ -101,12 +101,12 @@ class TestS3Storage:
             await StorageService.upload_image(_upload_file("a.png"))
         assert exc.value.status_code == 500
 
-    def test_delete_from_s3(self, monkeypatch):
+    async def test_delete_from_s3(self, monkeypatch):
         fake = FakeS3Client()
         monkeypatch.setattr(settings, "STORAGE_BACKEND", "s3")
         monkeypatch.setattr(settings, "S3_BUCKET_NAME", "artiverse-media")
         monkeypatch.setattr(settings, "S3_PUBLIC_URL", "https://cdn.artiverse.app/")
         monkeypatch.setattr(storage_service, "_get_s3_client", lambda: fake)
 
-        assert StorageService.delete_image("https://cdn.artiverse.app/covers/abc.png") is True
+        assert await StorageService.delete_image("https://cdn.artiverse.app/covers/abc.png") is True
         assert fake.delete_calls[0]["Key"] == "covers/abc.png"

@@ -40,10 +40,66 @@ async function handleLogout() {
 
             <NuxtLink
               v-if="isAuthenticated"
-              :to="`/users/${user?.id}/lists`"
+              to="/mylists"
               class="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-gray-500 transition-colors hover:border-accent hover:text-accent"
             >
               Mes listes
+            </NuxtLink>
+
+            <NuxtLink
+              v-if="isAuthenticated"
+              to="/search"
+              class="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-gray-500 transition-colors hover:border-accent hover:text-accent"
+            >
+              Recherche
+            </NuxtLink>
+
+            <NuxtLink
+              v-if="isAuthenticated"
+              to="/badges"
+              class="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-gray-500 transition-colors hover:border-accent hover:text-accent"
+            >
+              Badges
+            </NuxtLink>
+
+            <NuxtLink
+              v-if="isAuthenticated"
+              to="/statistics"
+              class="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-gray-500 transition-colors hover:border-accent hover:text-accent"
+            >
+              Statistiques
+            </NuxtLink>
+
+            <NuxtLink
+              v-if="isAuthenticated"
+              to="/xp"
+              class="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-gray-500 transition-colors hover:border-accent hover:text-accent"
+            >
+              XP & Leveling
+            </NuxtLink>
+
+            <NuxtLink
+              v-if="isAuthenticated"
+              to="/feed"
+              class="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-gray-500 transition-colors hover:border-accent hover:text-accent"
+            >
+              Activity Feed
+            </NuxtLink>
+
+            <NuxtLink
+              v-if="isAuthenticated"
+              :to="`/users/${user?.id}/settings`"
+              class="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-gray-500 transition-colors hover:border-accent hover:text-accent"
+            >
+              Paramètres
+            </NuxtLink>
+
+            <NuxtLink
+              v-if="isAuthenticated"
+              to="/admin"
+              class="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-gray-500 transition-colors hover:border-accent hover:text-accent"
+            >
+              Admin
             </NuxtLink>
           </div>
         </div>
@@ -141,11 +197,65 @@ async function handleLogout() {
 
         <NuxtLink
           v-if="isAuthenticated"
-          :to="`/users/${user?.id}/lists`"
+          to="/mylists"
           class="block border-l-4 border-transparent py-2 pl-3 pr-4 text-base font-medium text-gray-500 transition-all duration-200 ease-out hover:border-accent hover:bg-gray-50 hover:text-accent dark:text-text-secondary dark:hover:bg-bg-tertiary dark:hover:text-accent"
           @click="isMenuOpen = false"
         >
           Mes listes
+        </NuxtLink>
+
+        <NuxtLink
+          v-if="isAuthenticated"
+          to="/search"
+          class="block border-l-4 border-transparent py-2 pl-3 pr-4 text-base font-medium text-gray-500 transition-all duration-200 ease-out hover:border-accent hover:bg-gray-50 hover:text-accent dark:text-text-secondary dark:hover:bg-bg-tertiary dark:hover:text-accent"
+          @click="isMenuOpen = false"
+        >
+          Recherche
+        </NuxtLink>
+
+        <NuxtLink
+          v-if="isAuthenticated"
+          to="/badges"
+          class="block border-l-4 border-transparent py-2 pl-3 pr-4 text-base font-medium text-gray-500 transition-all duration-200 ease-out hover:border-accent hover:bg-gray-50 hover:text-accent dark:text-text-secondary dark:hover:bg-bg-tertiary dark:hover:text-accent"
+          @click="isMenuOpen = false"
+        >
+          Badges
+        </NuxtLink>
+
+        <NuxtLink
+          v-if="isAuthenticated"
+          to="/statistics"
+          class="block border-l-4 border-transparent py-2 pl-3 pr-4 text-base font-medium text-gray-500 transition-all duration-200 ease-out hover:border-accent hover:bg-gray-50 hover:text-accent dark:text-text-secondary dark:hover:bg-bg-tertiary dark:hover:text-accent"
+          @click="isMenuOpen = false"
+        >
+          Statistiques
+        </NuxtLink>
+
+        <NuxtLink
+          v-if="isAuthenticated"
+          :to="`/users/${user?.id}/settings`"
+          class="block border-l-4 border-transparent py-2 pl-3 pr-4 text-base font-medium text-gray-500 transition-all duration-200 ease-out hover:border-accent hover:bg-gray-50 hover:text-accent dark:text-text-secondary dark:hover:bg-bg-tertiary dark:hover:text-accent"
+          @click="isMenuOpen = false"
+        >
+          Paramètres
+        </NuxtLink>
+
+        <NuxtLink
+          v-if="isAuthenticated"
+          to="/xp"
+          class="block border-l-4 border-transparent py-2 pl-3 pr-4 text-base font-medium text-gray-500 transition-all duration-200 ease-out hover:border-accent hover:bg-gray-50 hover:text-accent dark:text-text-secondary dark:hover:bg-bg-tertiary dark:hover:text-accent"
+          @click="isMenuOpen = false"
+        >
+          XP & Leveling
+        </NuxtLink>
+
+        <NuxtLink
+          v-if="isAuthenticated"
+          to="/feed"
+          class="block border-l-4 border-transparent py-2 pl-3 pr-4 text-base font-medium text-gray-500 transition-all duration-200 ease-out hover:border-accent hover:bg-gray-50 hover:text-accent dark:text-text-secondary dark:hover:bg-bg-tertiary dark:hover:text-accent"
+          @click="isMenuOpen = false"
+        >
+          Activity Feed
         </NuxtLink>
       </div>
 

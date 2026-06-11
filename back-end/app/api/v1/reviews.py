@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import get_db
 from app.models import User
@@ -11,40 +11,40 @@ router = APIRouter(prefix="/reviews", tags=["reviews"])
 
 
 @router.post("", response_model=ReviewResponse)
-def create_review(
+async def create_review(
     review_create: ReviewCreate,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     """Create a new review."""
     # Verify media exists
-    media = MediaService.get_media_by_id(db, review_create.media_id)
+    media = await MediaService.get_media_by_id(db, review_create.media_id)
     if not media:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Media not found"
         )
-    
-    review = ReviewService.create_review(db, review_create, current_user.id)
+
+    review = await ReviewService.create_review(db, review_create, current_user.id)
     return review
 
 
 @router.get("/media/{media_id}", response_model=dict)
-def get_media_reviews(
+async def get_media_reviews(
     media_id: str,
     skip: int = 0,
     limit: int = 10,
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     """Get reviews for a media."""
-    media = MediaService.get_media_by_id(db, media_id)
+    media = await MediaService.get_media_by_id(db, media_id)
     if not media:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Media not found"
         )
-    
-    reviews, total = ReviewService.get_reviews_by_media(db, media_id, skip, limit)
+
+    reviews, total = await ReviewService.get_reviews_by_media(db, media_id, skip, limit)
 
     return {
         "items": [ReviewResponse.model_validate(r).model_dump(mode="json") for r in reviews],
@@ -56,12 +56,12 @@ def get_media_reviews(
 
 
 @router.get("/{review_id}", response_model=ReviewResponse)
-def get_review(
+async def get_review(
     review_id: str,
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     """Get a specific review."""
-    review = ReviewService.get_review_by_id(db, review_id)
+    review = await ReviewService.get_review_by_id(db, review_id)
     
     if not review:
         raise HTTPException(
@@ -73,14 +73,14 @@ def get_review(
 
 
 @router.patch("/{review_id}", response_model=ReviewResponse)
-def update_review(
+async def update_review(
     review_id: str,
     review_update: ReviewUpdate,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     """Update a review."""
-    review = ReviewService.get_review_by_id(db, review_id)
+    review = await ReviewService.get_review_by_id(db, review_id)
     
     if not review:
         raise HTTPException(
@@ -97,20 +97,20 @@ def update_review(
     update_data = review_update.dict(exclude_unset=True)
     for field, value in update_data.items():
         setattr(review, field, value)
-    
-    db.commit()
-    db.refresh(review)
+
+    await db.commit()
+    await db.refresh(review)
     return review
 
 
 @router.delete("/{review_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_review(
+async def delete_review(
     review_id: str,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     """Delete a review."""
-    review = ReviewService.get_review_by_id(db, review_id)
+    review = await ReviewService.get_review_by_id(db, review_id)
     
     if not review:
         raise HTTPException(
@@ -123,5 +123,5 @@ def delete_review(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized to delete this review"
         )
-    
-    ReviewService.delete_review(db, review_id)
+
+    await ReviewService.delete_review(db, review_id)

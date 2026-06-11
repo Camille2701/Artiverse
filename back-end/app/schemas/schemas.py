@@ -1,6 +1,6 @@
 from pydantic import BaseModel, EmailStr, Field, field_validator
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 from enum import Enum
 
 
@@ -62,6 +62,9 @@ class MediaBase(BaseModel):
     release_date: Optional[datetime] = None
     cover_image: Optional[str] = None
     banner_image: Optional[str] = None
+    franchise: Optional[str] = None
+    genres: Optional[List[str]] = None
+    creators: Optional[List[str]] = None
 
     @field_validator("release_date", mode="before")
     @classmethod
@@ -80,6 +83,9 @@ class MediaUpdate(BaseModel):
     release_date: Optional[datetime] = None
     cover_image: Optional[str] = None
     banner_image: Optional[str] = None
+    franchise: Optional[str] = None
+    genres: Optional[List[str]] = None
+    creators: Optional[List[str]] = None
 
     @field_validator("release_date", mode="before")
     @classmethod

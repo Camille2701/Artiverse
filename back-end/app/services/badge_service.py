@@ -1,6 +1,6 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from app.models import User, Badge, UserBadge, BadgeTier, BadgeCategory, MediaType, Media, Rating, Review
-from sqlalchemy import func, and_
+from sqlalchemy import func, and_, select
 from typing import List, Dict, Optional
 import json
 
@@ -164,10 +164,13 @@ class BadgeService:
     ]
 
     @staticmethod
-    def initialize_badges(db: Session):
+    async def initialize_badges(db: AsyncSession):
         """Initialize all badges in the database."""
         for badge_def in BadgeService.BADGE_DEFINITIONS:
-            existing = db.query(Badge).filter(Badge.name == badge_def["name"]).first()
+            result = await db.execute(
+                select(Badge).where(Badge.name == badge_def["name"])
+            )
+            existing = result.scalar_one_or_none()
             if not existing:
                 badge = Badge(
                     name=badge_def["name"],
@@ -179,12 +182,15 @@ class BadgeService:
                     xp_reward=badge_def["xp_reward"]
                 )
                 db.add(badge)
-        db.commit()
+        await db.commit()
 
     @staticmethod
-    def get_user_badges(db: Session, user_id: str) -> List[Dict]:
+    async def get_user_badges(db: AsyncSession, user_id: str) -> List[Dict]:
         """Get all badges earned by a user."""
-        user_badges = db.query(UserBadge).filter(UserBadge.user_id == user_id).all()
+        result = await db.execute(
+            select(UserBadge).where(UserBadge.user_id == user_id)
+        )
+        user_badges = result.scalars().all()
 
         badges = []
         for user_badge in user_badges:
@@ -205,9 +211,12 @@ class BadgeService:
         return badges
 
     @staticmethod
-    def get_available_badges(db: Session) -> List[Dict]:
+    async def get_available_badges(db: AsyncSession) -> List[Dict]:
         """Get all available badges."""
-        badges = db.query(Badge).order_by(Badge.tier, Badge.category).all()
+        result = await db.execute(
+            select(Badge).order_by(Badge.tier, Badge.category)
+        )
+        badges = result.scalars().all()
 
         return [
             {
@@ -224,40 +233,51 @@ class BadgeService:
         ]
 
     @staticmethod
-    def check_badge_eligibility(db: Session, user: User) -> List[Badge]:
+    async def check_badge_eligibility(db: AsyncSession, user: User) -> List[Badge]:
         """Check which badges the user is eligible for but hasn't earned yet."""
         # Get user's current badge IDs
         earned_badge_ids = {ub.badge_id for ub in user.badges}
 
         # Get all badges
-        all_badges = db.query(Badge).filter(~Badge.id.in_(earned_badge_ids)).all()
+        result = await db.execute(
+            select(Badge).where(~Badge.id.in_(earned_badge_ids))
+        )
+        all_badges = result.scalars().all()
 
         eligible_badges = []
 
         for badge in all_badges:
-            if BadgeService._check_single_badge(db, user, badge):
+            if await BadgeService._check_single_badge(db, user, badge):
                 eligible_badges.append(badge)
 
         return eligible_badges
 
     @staticmethod
-    def _check_single_badge(db: Session, user: User, badge: Badge) -> bool:
+    async def _check_single_badge(db: AsyncSession, user: User, badge: Badge) -> bool:
         """Check if a user meets the requirements for a single badge."""
         requirements = badge.requirements
         req_type = requirements.get("type")
 
         if req_type == "total_reviews":
-            count = db.query(Review).filter(Review.user_id == user.id).count()
+            result = await db.execute(
+                select(func.count()).select_from(Review).where(Review.user_id == user.id)
+            )
+            count = result.scalar()
             return count >= requirements.get("count", 0)
 
         elif req_type == "total_ratings":
-            count = db.query(Rating).filter(Rating.user_id == user.id).count()
+            result = await db.execute(
+                select(func.count()).select_from(Rating).where(Rating.user_id == user.id)
+            )
+            count = result.scalar()
             return count >= requirements.get("count", 0)
 
         elif req_type == "total_lists":
-            count = db.query(func.count()).select_from(func.text("lists")).where(
-                func.text("lists.user_id") == user.id
-            ).scalar()
+            from app.models import List
+            result = await db.execute(
+                select(func.count()).select_from(List).where(List.user_id == user.id)
+            )
+            count = result.scalar()
             return count >= requirements.get("count", 0)
 
         elif req_type == "level_reached":
@@ -265,47 +285,60 @@ class BadgeService:
 
         elif req_type == "reviews_in_genre":
             media_type = requirements.get("media_type")
-            count = db.query(Review).join(Media).filter(
-                and_(
-                    Review.user_id == user.id,
-                    Media.media_type == media_type
+            result = await db.execute(
+                select(func.count()).select_from(Review).join(Media).where(
+                    and_(
+                        Review.user_id == user.id,
+                        Media.media_type == media_type
+                    )
                 )
-            ).count()
+            )
+            count = result.scalar()
             return count >= requirements.get("count", 0)
 
         elif req_type == "ratings_in_genre":
             media_type = requirements.get("media_type")
-            count = db.query(Rating).join(Media).filter(
-                and_(
-                    Rating.user_id == user.id,
-                    Media.media_type == media_type
+            result = await db.execute(
+                select(func.count()).select_from(Rating).join(Media).where(
+                    and_(
+                        Rating.user_id == user.id,
+                        Media.media_type == media_type
+                    )
                 )
-            ).count()
+            )
+            count = result.scalar()
             return count >= requirements.get("count", 0)
 
         elif req_type == "total_likes":
-            total = db.query(func.sum(Review.like_count)).join(User).filter(
-                User.id == user.id
-            ).scalar() or 0
+            result = await db.execute(
+                select(func.sum(Review.like_count)).where(Review.user_id == user.id)
+            )
+            total = result.scalar() or 0
             return total >= requirements.get("count", 0)
 
         elif req_type == "public_lists":
             from app.models import List
-            count = db.query(List).filter(
-                and_(
-                    List.user_id == user.id,
-                    List.visibility == "public"
+            result = await db.execute(
+                select(func.count()).select_from(List).where(
+                    and_(
+                        List.user_id == user.id,
+                        List.visibility == "public"
+                    )
                 )
-            ).count()
+            )
+            count = result.scalar()
             return count >= requirements.get("count", 0)
 
         elif req_type == "perfect_rating":
-            has_perfect = db.query(Rating).filter(
-                and_(
-                    Rating.user_id == user.id,
-                    Rating.score == 10
-                )
-            ).first()
+            result = await db.execute(
+                select(Rating).where(
+                    and_(
+                        Rating.user_id == user.id,
+                        Rating.score == 10
+                    )
+                ).limit(1)
+            )
+            has_perfect = result.scalar_one_or_none()
             return has_perfect is not None
 
         elif req_type == "streak":
@@ -322,15 +355,18 @@ class BadgeService:
         return False
 
     @staticmethod
-    def award_badge(db: Session, user: User, badge: Badge) -> UserBadge:
+    async def award_badge(db: AsyncSession, user: User, badge: Badge) -> UserBadge:
         """Award a badge to a user."""
         # Check if user already has this badge
-        existing = db.query(UserBadge).filter(
-            and_(
-                UserBadge.user_id == user.id,
-                UserBadge.badge_id == badge.id
-            )
-        ).first()
+        result = await db.execute(
+            select(UserBadge).where(
+                and_(
+                    UserBadge.user_id == user.id,
+                    UserBadge.badge_id == badge.id
+                )
+            ).limit(1)
+        )
+        existing = result.scalar_one_or_none()
 
         if existing:
             return existing
@@ -343,19 +379,19 @@ class BadgeService:
         )
 
         db.add(user_badge)
-        db.commit()
-        db.refresh(user_badge)
+        await db.commit()
+        await db.refresh(user_badge)
 
         return user_badge
 
     @staticmethod
-    def check_and_award_badges(db: Session, user: User) -> List[Dict]:
+    async def check_and_award_badges(db: AsyncSession, user: User) -> List[Dict]:
         """Check eligibility and award any new badges."""
-        eligible_badges = BadgeService.check_badge_eligibility(db, user)
+        eligible_badges = await BadgeService.check_badge_eligibility(db, user)
 
         awarded_badges = []
         for badge in eligible_badges:
-            user_badge = BadgeService.award_badge(db, user, badge)
+            user_badge = await BadgeService.award_badge(db, user, badge)
             awarded_badges.append({
                 "badge_name": badge.name,
                 "badge_icon": badge.icon,
@@ -367,7 +403,7 @@ class BadgeService:
         return awarded_badges
 
     @staticmethod
-    def get_badge_progress(db: Session, user: User, badge: Badge) -> Dict:
+    async def get_badge_progress(db: AsyncSession, user: User, badge: Badge) -> Dict:
         """Get user's progress toward a specific badge."""
         requirements = badge.requirements
         req_type = requirements.get("type")
@@ -376,57 +412,75 @@ class BadgeService:
         current = 0
 
         if req_type == "total_reviews":
-            current = db.query(Review).filter(Review.user_id == user.id).count()
+            result = await db.execute(
+                select(func.count()).select_from(Review).where(Review.user_id == user.id)
+            )
+            current = result.scalar()
 
         elif req_type == "total_ratings":
-            current = db.query(Rating).filter(Rating.user_id == user.id).count()
+            result = await db.execute(
+                select(func.count()).select_from(Rating).where(Rating.user_id == user.id)
+            )
+            current = result.scalar()
 
         elif req_type == "total_lists":
-            current = db.query(func.count()).select_from(func.text("lists")).where(
-                func.text("lists.user_id") == user.id
-            ).scalar()
+            from app.models import List
+            result = await db.execute(
+                select(func.count()).select_from(List).where(List.user_id == user.id)
+            )
+            current = result.scalar()
 
         elif req_type == "level_reached":
             current = user.level
 
         elif req_type == "reviews_in_genre":
             media_type = requirements.get("media_type")
-            current = db.query(Review).join(Media).filter(
-                and_(
-                    Review.user_id == user.id,
-                    Media.media_type == media_type
+            result = await db.execute(
+                select(func.count()).select_from(Review).join(Media).where(
+                    and_(
+                        Review.user_id == user.id,
+                        Media.media_type == media_type
+                    )
                 )
-            ).count()
+            )
+            current = result.scalar()
 
         elif req_type == "ratings_in_genre":
             media_type = requirements.get("media_type")
-            current = db.query(Rating).join(Media).filter(
-                and_(
-                    Rating.user_id == user.id,
-                    Media.media_type == media_type
+            result = await db.execute(
+                select(func.count()).select_from(Rating).join(Media).where(
+                    and_(
+                        Rating.user_id == user.id,
+                        Media.media_type == media_type
+                    )
                 )
-            ).count()
+            )
+            current = result.scalar()
 
         elif req_type == "total_likes":
-            current = db.query(func.sum(Review.like_count)).join(User).filter(
-                User.id == user.id
-            ).scalar() or 0
+            result = await db.execute(
+                select(func.sum(Review.like_count)).where(Review.user_id == user.id)
+            )
+            current = result.scalar() or 0
 
         elif req_type == "public_lists":
             from app.models import List
-            current = db.query(List).filter(
-                and_(
-                    List.user_id == user.id,
-                    List.visibility == "public"
+            result = await db.execute(
+                select(func.count()).select_from(List).where(
+                    and_(
+                        List.user_id == user.id,
+                        List.visibility == "public"
+                    )
                 )
-            ).count()
+            )
+            current = result.scalar()
 
         elif req_type == "streak":
             current = user.streak_days
 
         # For boolean requirements, progress is either 0 or 100%
         if req_type in ["perfect_rating", "early_adopter"]:
-            is_complete = BadgeService._check_single_badge(db, user, badge)
+            is_complete = await BadgeService._check_single_badge(db, user, badge)
             current = 1 if is_complete else 0
             target = 1
 
@@ -441,24 +495,31 @@ class BadgeService:
         }
 
     @staticmethod
-    def equip_badge(db: Session, user: User, badge_id: str) -> bool:
+    async def equip_badge(db: AsyncSession, user: User, badge_id: str) -> bool:
         """Equip a badge for display."""
         # Unequip all badges first
-        db.query(UserBadge).filter(UserBadge.user_id == user.id).update(
-            {"is_equipped": False}
+        result = await db.execute(
+            select(UserBadge).where(UserBadge.user_id == user.id)
         )
+        user_badges = result.scalars().all()
+
+        for user_badge in user_badges:
+            user_badge.is_equipped = False
 
         # Equip the specified badge
-        user_badge = db.query(UserBadge).filter(
-            and_(
-                UserBadge.user_id == user.id,
-                UserBadge.badge_id == badge_id
-            )
-        ).first()
+        result = await db.execute(
+            select(UserBadge).where(
+                and_(
+                    UserBadge.user_id == user.id,
+                    UserBadge.badge_id == badge_id
+                )
+            ).limit(1)
+        )
+        user_badge = result.scalar_one_or_none()
 
         if user_badge:
             user_badge.is_equipped = True
-            db.commit()
+            await db.commit()
             return True
 
         return False

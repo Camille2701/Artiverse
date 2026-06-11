@@ -7,6 +7,12 @@
       "skillPath": "skills/frontend-design/SKILL.md",
       "computedHash": "516bd2154eb843a8240e43d5b285229129853114ad7075a5e141e1c08e408c84"
     },
+    "python-backend": {
+      "source": "yonatangross/orchestkit",
+      "sourceType": "github",
+      "skillPath": "plugins/ork/skills/python-backend/SKILL.md",
+      "computedHash": "07abd80a4ea0335759169117da8dd438c46f1e79d303175a6cb735da89d1b3ea"
+    },
     "vue-best-practices": {
       "source": "hyf0/vue-skills",
       "sourceType": "github",

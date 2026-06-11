@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { MediaType } from '~/types/media'
+import { resolveMediaImage } from '~/composables/useMediaCover'
+
+const { isAuthenticated, user } = useAuth()
 
 useHead({
   title: "Artiverse - Votre univers multimédia",
@@ -59,7 +62,7 @@ const getMediaByType = (type: MediaType) => {
         <div class="text-center">
           <div class="mb-6 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm">
             <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
-            <span class="text-sm text-text-secondary font-medium">Nouvelle version disponible</span>
+            <span class="text-sm text-text-secondary font-medium">Catalogue transmedia — films, séries, jeux & livres</span>
           </div>
           <h1 class="text-5xl sm:text-6xl lg:text-7xl font-display font-bold text-text-primary mb-6">
             Bienvenue sur <span class="gradient-text">Artiverse</span>
@@ -68,22 +71,41 @@ const getMediaByType = (type: MediaType) => {
             Votre univers multimédia pour découvrir, noter et partager vos films, séries, jeux vidéo et livres préférés.
           </p>
           <div class="mt-10 flex flex-col sm:flex-row justify-center gap-4">
-            <NuxtLink
-              to="/users/new"
-              class="btn-primary px-8 py-4 text-lg font-semibold flex items-center justify-center gap-2 group"
-            >
-              Commencer maintenant
-              <svg class="w-5 h-5 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
-            </NuxtLink>
-            <NuxtLink
-              to="/home"
-              class="px-8 py-4 text-lg font-semibold text-text-primary border-2 border-border-color rounded-xl hover:border-border-color-light hover:bg-bg-secondary/50 transition-all duration-300 flex items-center justify-center gap-2"
-            >
-              <span>🔍</span>
-              Explorer le catalogue
-            </NuxtLink>
+            <template v-if="isAuthenticated">
+              <NuxtLink
+                to="/home"
+                class="btn-primary px-8 py-4 text-lg font-semibold flex items-center justify-center gap-2 group"
+              >
+                Explorer le catalogue
+                <svg class="w-5 h-5 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </NuxtLink>
+              <NuxtLink
+                :to="`/users/${user?.id}`"
+                class="px-8 py-4 text-lg font-semibold text-text-primary border-2 border-border-color rounded-xl hover:border-border-color-light hover:bg-bg-secondary/50 transition-all duration-300 flex items-center justify-center gap-2"
+              >
+                Mon profil
+              </NuxtLink>
+            </template>
+            <template v-else>
+              <NuxtLink
+                to="/users/new"
+                class="btn-primary px-8 py-4 text-lg font-semibold flex items-center justify-center gap-2 group"
+              >
+                Commencer maintenant
+                <svg class="w-5 h-5 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </NuxtLink>
+              <NuxtLink
+                to="/home"
+                class="px-8 py-4 text-lg font-semibold text-text-primary border-2 border-border-color rounded-xl hover:border-border-color-light hover:bg-bg-secondary/50 transition-all duration-300 flex items-center justify-center gap-2"
+              >
+                <span>🔍</span>
+                Explorer le catalogue
+              </NuxtLink>
+            </template>
           </div>
         </div>
       </div>
@@ -103,8 +125,7 @@ const getMediaByType = (type: MediaType) => {
         >
           <div class="relative h-56 overflow-hidden bg-bg-tertiary">
             <img
-              v-if="media.image"
-              :src="media.image"
+              :src="resolveMediaImage(media.image, media.type)"
               :alt="media.title"
               class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
             />
@@ -221,7 +242,7 @@ const getMediaByType = (type: MediaType) => {
           <p class="mx-auto mt-4 max-w-2xl text-xl text-text-secondary font-body">
             Rejoignez la communauté et commencez à explorer votre univers multimédia dès maintenant.
           </p>
-          <div class="mt-10 flex flex-col sm:flex-row justify-center gap-4">
+          <div v-if="!isAuthenticated" class="mt-10 flex flex-col sm:flex-row justify-center gap-4">
             <NuxtLink
               to="/users/new"
               class="btn-primary px-8 py-4 text-lg font-semibold flex items-center justify-center gap-2"
@@ -236,6 +257,14 @@ const getMediaByType = (type: MediaType) => {
               class="px-8 py-4 text-lg font-semibold text-text-primary border-2 border-border-color rounded-xl hover:border-border-color-light hover:bg-bg-secondary/50 transition-all duration-300"
             >
               Se connecter
+            </NuxtLink>
+          </div>
+          <div v-else class="mt-10">
+            <NuxtLink
+              to="/home"
+              class="btn-primary px-8 py-4 text-lg font-semibold inline-flex items-center justify-center gap-2"
+            >
+              Continuer l'exploration
             </NuxtLink>
           </div>
         </div>

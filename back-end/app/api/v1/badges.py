@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional
 
 from app.db import get_db
@@ -45,51 +45,55 @@ class BadgeProgressResponse(BaseModel):
 
 
 @router.get("/available", response_model=list[BadgeResponse])
-def get_available_badges(
+async def get_available_badges(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     """Get all available badges."""
-    badges = BadgeService.get_available_badges(db)
+    badges = await BadgeService.get_available_badges(db)
     return badges
 
 
 @router.get("/my-badges", response_model=list[UserBadgeResponse])
-def get_my_badges(
+async def get_my_badges(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     """Get badges earned by the current user."""
-    badges = BadgeService.get_user_badges(db, current_user.id)
+    badges = await BadgeService.get_user_badges(db, current_user.id)
     return badges
 
 
 @router.get("/users/{user_id}", response_model=list[UserBadgeResponse])
-def get_user_badges(
+async def get_user_badges(
     user_id: str,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     """Get badges earned by a specific user."""
     # Check if user exists
-    user = db.query(User).filter(User.id == user_id).first()
+    from sqlalchemy import select
+
+    query = select(User).filter(User.id == user_id)
+    result = await db.execute(query)
+    user = result.scalar_one_or_none()
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found"
         )
 
-    badges = BadgeService.get_user_badges(db, user_id)
+    badges = await BadgeService.get_user_badges(db, user_id)
     return badges
 
 
 @router.get("/check-eligibility")
-def check_badge_eligibility(
+async def check_badge_eligibility(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     """Check which badges the user is eligible for but hasn't earned."""
-    eligible_badges = BadgeService.check_badge_eligibility(db, current_user)
+    eligible_badges = await BadgeService.check_badge_eligibility(db, current_user)
 
     return {
         "eligible_badges": [
@@ -108,12 +112,12 @@ def check_badge_eligibility(
 
 
 @router.post("/award-new")
-def award_new_badges(
+async def award_new_badges(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     """Check eligibility and award any new badges."""
-    awarded_badges = BadgeService.check_and_award_badges(db, current_user)
+    awarded_badges = await BadgeService.check_and_award_badges(db, current_user)
 
     return {
         "awarded_badges": awarded_badges,
@@ -122,31 +126,35 @@ def award_new_badges(
 
 
 @router.get("/progress/{badge_id}", response_model=BadgeProgressResponse)
-def get_badge_progress(
+async def get_badge_progress(
     badge_id: str,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     """Get user's progress toward a specific badge."""
-    badge = db.query(Badge).filter(Badge.id == badge_id).first()
+    from sqlalchemy import select
+
+    query = select(Badge).filter(Badge.id == badge_id)
+    result = await db.execute(query)
+    badge = result.scalar_one_or_none()
     if not badge:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Badge not found"
         )
 
-    progress = BadgeService.get_badge_progress(db, current_user, badge)
+    progress = await BadgeService.get_badge_progress(db, current_user, badge)
     return progress
 
 
 @router.post("/equip/{badge_id}")
-def equip_badge(
+async def equip_badge(
     badge_id: str,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     """Equip a badge for display."""
-    success = BadgeService.equip_badge(db, current_user, badge_id)
+    success = await BadgeService.equip_badge(db, current_user, badge_id)
 
     if success:
         return {"message": "Badge equipped successfully"}
@@ -158,13 +166,13 @@ def equip_badge(
 
 
 @router.post("/initialize")
-def initialize_badges(
+async def initialize_badges(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     """Initialize all badges in the database (admin operation)."""
     try:
-        BadgeService.initialize_badges(db)
+        await BadgeService.initialize_badges(db)
         return {"message": "Badges initialized successfully"}
     except Exception as e:
         raise HTTPException(

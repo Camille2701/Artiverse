@@ -1,9 +1,9 @@
 import pytest
 import os
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, Session
-from sqlalchemy.pool import StaticPool
+import pytest_asyncio
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from fastapi.testclient import TestClient
+from httpx import AsyncClient, ASGITransport
 
 from app.main import app
 from app.db.base import Base
@@ -15,50 +15,52 @@ from app.services import UserService
 from app.utils.security import create_access_token
 from datetime import timedelta
 
+# Configure pytest-asyncio
+pytest_plugins = ("pytest_asyncio",)
 
-# Create in-memory SQLite database for testing
+
+# Create async in-memory SQLite database for testing
 @pytest.fixture(scope="function")
-def test_db():
+async def test_db():
     """Create a test database for each test function."""
-    engine = create_engine(
-        "sqlite:///:memory:",
+    engine = create_async_engine(
+        "sqlite+aiosqlite:///:memory:",
         connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
     )
-    Base.metadata.create_all(bind=engine)
-    
-    TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-    
-    yield TestingSessionLocal()
-    
-    Base.metadata.drop_all(bind=engine)
+
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+    async with async_sessionmaker(engine)() as session:
+        yield session
+
+    await engine.dispose()
 
 
 @pytest.fixture
-def client(test_db):
+async def client(test_db):
     """Create a test client with dependency overrides."""
-    def override_get_db():
-        # Do NOT close the shared session here: the test_db fixture owns its
-        # lifecycle. Closing per-request detaches ORM instances held by other
-        # fixtures (test_user, test_user_2) and breaks subsequent attribute access.
+    async def override_get_db():
         yield test_db
 
     app.dependency_overrides[get_db] = override_get_db
-    client = TestClient(app)
-    yield client
+
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        yield ac
+
     app.dependency_overrides.clear()
 
 
 @pytest.fixture
-def test_user(test_db) -> User:
+async def test_user(test_db) -> User:
     """Create a test user."""
     user_data = UserCreate(
         username="testuser",
         email="test@example.com",
         password="testpass123"
     )
-    user = UserService.create_user(test_db, user_data)
-    test_db.refresh(user)
+    user = await UserService.create_user(test_db, user_data)
+    await test_db.refresh(user)
     return user
 
 
@@ -80,13 +82,13 @@ def auth_headers(test_user_token) -> dict:
 
 
 @pytest.fixture
-def test_user_2(test_db) -> User:
+async def test_user_2(test_db) -> User:
     """Create a second test user."""
     user_data = UserCreate(
         username="testuser2",
         email="test2@example.com",
         password="testpass123"
     )
-    user = UserService.create_user(test_db, user_data)
-    test_db.refresh(user)
+    user = await UserService.create_user(test_db, user_data)
+    await test_db.refresh(user)
     return user

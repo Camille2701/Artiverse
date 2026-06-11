@@ -1,5 +1,5 @@
-from sqlalchemy.orm import Session
-from sqlalchemy import func, desc, and_
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import func, desc, and_, select
 from app.models import User, Media, Rating, Review, List, ListItem, MediaType
 from typing import Dict
 from datetime import datetime, timedelta
@@ -9,40 +9,60 @@ class StatisticsService:
     """Service for user statistics and analytics."""
 
     @staticmethod
-    def get_user_statistics(db: Session, user_id: str) -> Dict:
+    async def get_user_statistics(db: AsyncSession, user_id: str) -> Dict:
         """Get comprehensive statistics for a user."""
         # Basic counts
-        total_reviews = db.query(Review).filter(Review.user_id == user_id).count()
-        total_ratings = db.query(Rating).filter(Rating.user_id == user_id).count()
-        total_lists = db.query(List).filter(List.user_id == user_id).count()
+        result = await db.execute(
+            select(func.count()).select_from(Review).where(Review.user_id == user_id)
+        )
+        total_reviews = result.scalar()
+
+        result = await db.execute(
+            select(func.count()).select_from(Rating).where(Rating.user_id == user_id)
+        )
+        total_ratings = result.scalar()
+
+        result = await db.execute(
+            select(func.count()).select_from(List).where(List.user_id == user_id)
+        )
+        total_lists = result.scalar()
 
         # Total media in lists
-        user_lists = db.query(List).filter(List.user_id == user_id).all()
+        result = await db.execute(
+            select(List).where(List.user_id == user_id)
+        )
+        user_lists = result.scalars().all()
         list_ids = [lst.id for lst in user_lists]
-        total_media_in_lists = db.query(ListItem).filter(ListItem.list_id.in_(list_ids)).count()
+
+        if list_ids:
+            result = await db.execute(
+                select(func.count()).select_from(ListItem).where(ListItem.list_id.in_(list_ids))
+            )
+            total_media_in_lists = result.scalar()
+        else:
+            total_media_in_lists = 0
 
         # Reviews by media type
-        reviews_by_type = db.query(
-            Media.media_type,
-            func.count(Review.id).label('count')
-        ).join(
-            Review, Media.id == Review.media_id
-        ).filter(
-            Review.user_id == user_id
-        ).group_by(Media.media_type).all()
+        reviews_by_type_result = await db.execute(
+            select(Media.media_type, func.count(Review.id).label('count'))
+            .join(Review, Media.id == Review.media_id)
+            .where(Review.user_id == user_id)
+            .group_by(Media.media_type)
+        )
+        reviews_by_type = reviews_by_type_result.all()
 
         reviews_by_type_dict = {media_type.value: count for media_type, count in reviews_by_type}
 
         # Ratings by media type
-        ratings_by_type = db.query(
-            Media.media_type,
-            func.count(Rating.id).label('count'),
-            func.avg(Rating.score).label('avg_score')
-        ).join(
-            Rating, Media.id == Rating.media_id
-        ).filter(
-            Rating.user_id == user_id
-        ).group_by(Media.media_type).all()
+        ratings_by_type_result = await db.execute(
+            select(Media.media_type,
+                   func.count(Rating.id).label('count'),
+                   func.avg(Rating.score).label('avg_score'))
+            .join(Rating, Media.id == Rating.media_id)
+            .where(Rating.user_id == user_id)
+            .group_by(Media.media_type)
+        )
+        ratings_by_type = ratings_by_type_result.all()
 
         ratings_by_type_dict = {
             media_type.value: {
@@ -56,26 +76,28 @@ class StatisticsService:
         thirty_days_ago = datetime.now() - timedelta(days=30)
 
         # Reviews per day
-        daily_reviews = db.query(
-            func.date(Review.created_at).label('date'),
-            func.count(Review.id).label('count')
-        ).filter(
-            and_(
+        daily_reviews_result = await db.execute(
+            select(func.date(Review.created_at).label('date'),
+                   func.count(Review.id).label('count'))
+            .where(and_(
                 Review.user_id == user_id,
                 Review.created_at >= thirty_days_ago
-            )
-        ).group_by(func.date(Review.created_at)).all()
+            ))
+            .group_by(func.date(Review.created_at))
+        )
+        daily_reviews = daily_reviews_result.all()
 
         # Ratings per day
-        daily_ratings = db.query(
-            func.date(Rating.created_at).label('date'),
-            func.count(Rating.id).label('count')
-        ).filter(
-            and_(
+        daily_ratings_result = await db.execute(
+            select(func.date(Rating.created_at).label('date'),
+                   func.count(Rating.id).label('count'))
+            .where(and_(
                 Rating.user_id == user_id,
                 Rating.created_at >= thirty_days_ago
-            )
-        ).group_by(func.date(Rating.created_at)).all()
+            ))
+            .group_by(func.date(Rating.created_at))
+        )
+        daily_ratings = daily_ratings_result.all()
 
         # Combine activity data
         activity_timeline = {}
@@ -86,17 +108,17 @@ class StatisticsService:
             activity_timeline[str(date_str)] = activity_timeline.get(str(date_str), 0) + count
 
         # Top rated media by user
-        top_rated = db.query(
-            Media,
-            Rating.score
-        ).join(
-            Rating, Media.id == Rating.media_id
-        ).filter(
-            and_(
+        top_rated_result = await db.execute(
+            select(Media, Rating.score)
+            .join(Rating, Media.id == Rating.media_id)
+            .where(and_(
                 Rating.user_id == user_id,
                 Rating.score >= 8
-            )
-        ).order_by(desc(Rating.score)).limit(5).all()
+            ))
+            .order_by(desc(Rating.score))
+            .limit(5)
+        )
+        top_rated = top_rated_result.all()
 
         top_rated_list = [
             {
@@ -145,35 +167,44 @@ class StatisticsService:
         }
 
     @staticmethod
-    def get_platform_statistics(db: Session) -> Dict:
+    async def get_platform_statistics(db: AsyncSession) -> Dict:
         """Get platform-wide statistics."""
-        total_users = db.query(User).count()
-        total_media = db.query(Media).count()
-        total_reviews = db.query(Review).count()
-        total_ratings = db.query(Rating).count()
-        total_lists = db.query(List).count()
+        result = await db.execute(select(func.count()).select_from(User))
+        total_users = result.scalar()
+
+        result = await db.execute(select(func.count()).select_from(Media))
+        total_media = result.scalar()
+
+        result = await db.execute(select(func.count()).select_from(Review))
+        total_reviews = result.scalar()
+
+        result = await db.execute(select(func.count()).select_from(Rating))
+        total_ratings = result.scalar()
+
+        result = await db.execute(select(func.count()).select_from(List))
+        total_lists = result.scalar()
 
         # Media by type
-        media_by_type = db.query(
-            Media.media_type,
-            func.count(Media.id).label('count')
-        ).group_by(Media.media_type).all()
+        media_by_type_result = await db.execute(
+            select(Media.media_type, func.count(Media.id).label('count'))
+            .group_by(Media.media_type)
+        )
+        media_by_type = media_by_type_result.all()
 
         media_by_type_dict = {media_type.value: count for media_type, count in media_by_type}
 
         # Most active users (by total interactions)
-        user_activity = db.query(
-            User.id,
-            User.username,
-            func.count(Review.id).label('review_count'),
-            func.count(Rating.id).label('rating_count')
-        ).outerjoin(
-            Review, User.id == Review.user_id
-        ).outerjoin(
-            Rating, User.id == Rating.user_id
-        ).group_by(User.id).order_by(
-            desc(func.count(Review.id) + func.count(Rating.id))
-        ).limit(10).all()
+        user_activity_result = await db.execute(
+            select(User.id, User.username,
+                   func.count(Review.id).label('review_count'),
+                   func.count(Rating.id).label('rating_count'))
+            .outerjoin(Review, User.id == Review.user_id)
+            .outerjoin(Rating, User.id == Rating.user_id)
+            .group_by(User.id)
+            .order_by(desc(func.count(Review.id) + func.count(Rating.id)))
+            .limit(10)
+        )
+        user_activity = user_activity_result.all()
 
         most_active_users = [
             {
@@ -198,36 +229,45 @@ class StatisticsService:
         }
 
     @staticmethod
-    def get_user_comparison(db: Session, user_id: str, compare_user_id: str) -> Dict:
+    async def get_user_comparison(db: AsyncSession, user_id: str, compare_user_id: str) -> Dict:
         """Compare statistics between two users."""
-        user1_stats = StatisticsService.get_user_statistics(db, user_id)
-        user2_stats = StatisticsService.get_user_statistics(db, compare_user_id)
+        user1_stats = await StatisticsService.get_user_statistics(db, user_id)
+        user2_stats = await StatisticsService.get_user_statistics(db, compare_user_id)
 
         # Calculate compatibility based on common rated media
-        common_ratings = db.query(
-            Rating,
-            Media
-        ).join(
-            Media, Rating.media_id == Media.id
-        ).filter(
-            Rating.user_id == user_id
-        ).filter(
-            Rating.media_id.in_(
-                db.query(Rating.media_id).filter(Rating.user_id == compare_user_id)
+        # First, get media IDs rated by compare_user_id
+        compare_media_result = await db.execute(
+            select(Rating.media_id).where(Rating.user_id == compare_user_id)
+        )
+        compare_media_ids = [row[0] for row in compare_media_result.all()]
+
+        if compare_media_ids:
+            # Get common ratings
+            common_ratings_result = await db.execute(
+                select(Rating, Media)
+                .join(Media, Rating.media_id == Media.id)
+                .where(and_(
+                    Rating.user_id == user_id,
+                    Rating.media_id.in_(compare_media_ids)
+                ))
             )
-        ).all()
+            common_ratings = common_ratings_result.all()
+        else:
+            common_ratings = []
 
         # Simple compatibility calculation
         compatibility_score = 0
         if common_ratings:
             # Find matching ratings from compare user
             media_ids = [rating.media_id for rating, _ in common_ratings]
-            compare_ratings = db.query(Rating).filter(
-                and_(
+
+            compare_ratings_result = await db.execute(
+                select(Rating).where(and_(
                     Rating.user_id == compare_user_id,
                     Rating.media_id.in_(media_ids)
-                )
-            ).all()
+                ))
+            )
+            compare_ratings = compare_ratings_result.scalars().all()
 
             # Calculate similarity
             total_diff = 0

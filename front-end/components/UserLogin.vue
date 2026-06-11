@@ -1,31 +1,39 @@
 <script setup lang="ts">
 const { login, user } = useAuth()
 const { getErrorMessage } = useApi()
-const email = ref('')
+const emailOrUsername = ref('')
 const password = ref('')
 const isLoading = ref(false)
 const errorMessage = ref('')
 
 const touched = reactive({
-  email: false,
+  emailOrUsername: false,
   password: false
 })
 
 const errors = reactive({
-  email: '',
+  emailOrUsername: '',
   password: ''
 })
 
 const baseInputClass =
   'mt-1 block w-full rounded-lg border-2 px-4 py-3 text-sm transition-all duration-200 ease-out focus:outline-none focus:ring-0 focus:shadow-glow'
 
-function validateField(field: 'email' | 'password') {
-  if (field === 'email') {
-    if (!email.value.trim()) {
-      errors.email = 'L\'email est requis.'
+function validateField(field: 'emailOrUsername' | 'password') {
+  if (field === 'emailOrUsername') {
+    if (!emailOrUsername.value.trim()) {
+      errors.emailOrUsername = 'L\'email ou le nom d\'utilisateur est requis.'
     } else {
+      // Check if it's a valid email or username (min 3 chars)
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-      errors.email = emailRegex.test(email.value) ? '' : 'L\'email est invalide.'
+      const isEmail = emailRegex.test(emailOrUsername.value)
+      const isUsername = emailOrUsername.value.trim().length >= 3
+
+      if (!isEmail && !isUsername) {
+        errors.emailOrUsername = 'Email invalide ou nom d\'utilisateur trop court (min. 3 caractères).'
+      } else {
+        errors.emailOrUsername = ''
+      }
     }
   }
 
@@ -34,7 +42,7 @@ function validateField(field: 'email' | 'password') {
   }
 }
 
-function inputClass(field: 'email' | 'password') {
+function inputClass(field: 'emailOrUsername' | 'password') {
   const hasError = touched[field] && !!errors[field]
   return [
     baseInputClass,
@@ -45,15 +53,15 @@ function inputClass(field: 'email' | 'password') {
   ]
 }
 
-function markTouchedAndValidate(field: 'email' | 'password') {
+function markTouchedAndValidate(field: 'emailOrUsername' | 'password') {
   touched[field] = true
   validateField(field)
 }
 
 function validateForm() {
-  markTouchedAndValidate('email')
+  markTouchedAndValidate('emailOrUsername')
   markTouchedAndValidate('password')
-  return !errors.email && !errors.password
+  return !errors.emailOrUsername && !errors.password
 }
 
 async function handleLogin() {
@@ -65,7 +73,15 @@ async function handleLogin() {
   isLoading.value = true
 
   try {
-    await login({ email: email.value, password: password.value })
+    // Determine if input is email or username
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    const isEmail = emailRegex.test(emailOrUsername.value)
+
+    const loginData = isEmail
+      ? { email: emailOrUsername.value, password: password.value }
+      : { username: emailOrUsername.value, password: password.value }
+
+    await login(loginData)
     if (user.value) {
       await navigateTo(`/users/${user.value.id}`)
     }
@@ -81,16 +97,16 @@ async function handleLogin() {
   <form class="space-y-5" novalidate @submit.prevent="handleLogin">
     <p class="text-sm text-text-secondary font-body">Renseigne tes identifiants pour accéder à ton espace.</p>
     <div>
-      <label class="block text-sm font-medium text-text-primary mb-2 font-display">Email</label>
+      <label class="block text-sm font-medium text-text-primary mb-2 font-display">Email ou nom d'utilisateur</label>
       <input
-        v-model.trim="email"
-        :class="inputClass('email')"
-        type="email"
-        placeholder="ton@email.com"
+        v-model.trim="emailOrUsername"
+        :class="inputClass('emailOrUsername')"
+        type="text"
+        placeholder="ton@email.com ou tonpseudo"
         required
-        @blur="markTouchedAndValidate('email')"
+        @blur="markTouchedAndValidate('emailOrUsername')"
       >
-      <p v-if="touched.email && errors.email" class="mt-2 text-xs text-red-400 font-medium">{{ errors.email }}</p>
+      <p v-if="touched.emailOrUsername && errors.emailOrUsername" class="mt-2 text-xs text-red-400 font-medium">{{ errors.emailOrUsername }}</p>
     </div>
     <div>
       <label class="block text-sm font-medium text-text-primary mb-2 font-display">Mot de passe</label>

@@ -1,14 +1,14 @@
 from fastapi import Depends, HTTPException, status, Request
-from sqlalchemy.orm import Session
-from app.db import get_db
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.db.session import get_db
 from app.services import UserService
 from app.utils.security import decode_token
 from app.models import User
 
 
-def get_current_user(
+async def get_current_user(
     request: Request,
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ) -> User:
     """Get the current authenticated user."""
     auth_header = request.headers.get("Authorization")
@@ -38,7 +38,7 @@ def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    user = UserService.get_user_by_id(db, user_id)
+    user = await UserService.get_user_by_id(db, user_id)
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

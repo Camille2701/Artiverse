@@ -17,17 +17,11 @@
       <!-- Media cover image placeholder -->
       <div class="h-52 bg-gradient-to-br from-bg-tertiary to-bg-secondary flex items-center justify-center relative overflow-hidden">
         <div class="absolute inset-0 bg-gradient-to-t from-bg-secondary/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-        <div v-if="media.coverImage" class="w-full h-full">
-          <img
-            :src="media.coverImage"
-            :alt="media.title"
-            class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-          />
-        </div>
-        <div v-else class="text-center relative z-10">
-          <MediaTypeIcon :type="mediaTypeIcon" size="large" class="mb-2 transition-transform duration-300 group-hover:scale-110 mx-auto" />
-          <p class="text-text-tertiary text-sm font-medium">Image non disponible</p>
-        </div>
+        <img
+          :src="resolveMediaImage(media.coverImage || media.image, media.type)"
+          :alt="media.title"
+          class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+        />
       </div>
 
       <!-- Rating badge -->
@@ -94,9 +88,9 @@
 </template>
 
 <script setup lang="ts">
-import { MediaType, type Media } from '~/types/media';
-import MediaTypeIcon from '~/components/icons/MediaTypeIcon.vue';
-import UIIcon from '~/components/icons/UIIcon.vue';
+import { MediaType, type Media } from '~/types/media'
+import { resolveMediaImage } from '~/composables/useMediaCover'
+import UIIcon from '~/components/icons/UIIcon.vue'
 
 const props = defineProps<{
   media: Media

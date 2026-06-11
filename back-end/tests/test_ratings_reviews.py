@@ -2,9 +2,9 @@ import pytest
 from fastapi import status
 
 
-def _create_media(client, auth_headers, title="Test Movie"):
+async def _create_media(client, auth_headers, title="Test Movie"):
     """Helper to create a media and return its id."""
-    response = client.post(
+    response = await client.post(
         "/api/v1/media",
         data={"media_type": "movie", "title": title},
         headers=auth_headers
@@ -15,11 +15,11 @@ def _create_media(client, auth_headers, title="Test Movie"):
 class TestRatings:
     """Test rating endpoints."""
 
-    def test_rate_media(self, client, test_user, auth_headers):
+    async def test_rate_media(self, client, test_user, auth_headers):
         """Test rating media."""
-        media_id = _create_media(client, auth_headers)
+        media_id = await _create_media(client, auth_headers)
 
-        response = client.post(
+        response = await client.post(
             "/api/v1/ratings",
             json={"media_id": media_id, "score": 8},
             headers=auth_headers
@@ -27,17 +27,17 @@ class TestRatings:
         assert response.status_code == status.HTTP_200_OK
         assert response.json()["score"] == 8
 
-    def test_get_media_ratings(self, client, test_user, test_user_2, auth_headers):
+    async def test_get_media_ratings(self, client, test_user, test_user_2, auth_headers):
         """Test getting ratings for media."""
-        media_id = _create_media(client, auth_headers)
+        media_id = await _create_media(client, auth_headers)
 
-        client.post(
+        await client.post(
             "/api/v1/ratings",
             json={"media_id": media_id, "score": 9},
             headers=auth_headers
         )
 
-        response = client.get(
+        response = await client.get(
             f"/api/v1/ratings/media/{media_id}",
             headers=auth_headers
         )
@@ -45,18 +45,18 @@ class TestRatings:
         data = response.json()
         assert data["count"] == 1
 
-    def test_update_rating(self, client, test_user, auth_headers):
+    async def test_update_rating(self, client, test_user, auth_headers):
         """Test updating a rating."""
-        media_id = _create_media(client, auth_headers)
+        media_id = await _create_media(client, auth_headers)
 
-        create_response = client.post(
+        create_response = await client.post(
             "/api/v1/ratings",
             json={"media_id": media_id, "score": 7},
             headers=auth_headers
         )
         rating_id = create_response.json()["id"]
 
-        response = client.patch(
+        response = await client.patch(
             f"/api/v1/ratings/{rating_id}",
             json={"score": 9},
             headers=auth_headers
@@ -68,9 +68,9 @@ class TestRatings:
 class TestReviews:
     """Test review endpoints."""
 
-    def test_create_review(self, client, test_user, auth_headers):
+    async def test_create_review(self, client, test_user, auth_headers):
         """Test creating a review."""
-        media_id = _create_media(client, auth_headers)
+        media_id = await _create_media(client, auth_headers)
 
         review_data = {
             "media_id": media_id,
@@ -78,7 +78,7 @@ class TestReviews:
             "content": "This is a great movie, highly recommended.",
             "spoiler": False
         }
-        response = client.post(
+        response = await client.post(
             "/api/v1/reviews",
             json=review_data,
             headers=auth_headers
@@ -86,11 +86,11 @@ class TestReviews:
         assert response.status_code == status.HTTP_200_OK
         assert response.json()["title"] == "Great movie!"
 
-    def test_get_media_reviews(self, client, test_user, auth_headers):
+    async def test_get_media_reviews(self, client, test_user, auth_headers):
         """Test getting reviews for media."""
-        media_id = _create_media(client, auth_headers)
+        media_id = await _create_media(client, auth_headers)
 
-        client.post(
+        await client.post(
             "/api/v1/reviews",
             json={
                 "media_id": media_id,
@@ -101,7 +101,7 @@ class TestReviews:
             headers=auth_headers
         )
 
-        response = client.get(
+        response = await client.get(
             f"/api/v1/reviews/media/{media_id}",
             headers=auth_headers
         )
@@ -109,11 +109,11 @@ class TestReviews:
         data = response.json()
         assert data["total"] == 1
 
-    def test_update_review(self, client, test_user, auth_headers):
+    async def test_update_review(self, client, test_user, auth_headers):
         """Test updating a review."""
-        media_id = _create_media(client, auth_headers)
+        media_id = await _create_media(client, auth_headers)
 
-        create_response = client.post(
+        create_response = await client.post(
             "/api/v1/reviews",
             json={
                 "media_id": media_id,
@@ -125,7 +125,7 @@ class TestReviews:
         )
         review_id = create_response.json()["id"]
 
-        response = client.patch(
+        response = await client.patch(
             f"/api/v1/reviews/{review_id}",
             json={"title": "Great movie", "content": "Actually it was great!"},
             headers=auth_headers
@@ -133,11 +133,11 @@ class TestReviews:
         assert response.status_code == status.HTTP_200_OK
         assert response.json()["title"] == "Great movie"
 
-    def test_delete_review(self, client, test_user, auth_headers):
+    async def test_delete_review(self, client, test_user, auth_headers):
         """Test deleting a review."""
-        media_id = _create_media(client, auth_headers)
+        media_id = await _create_media(client, auth_headers)
 
-        create_response = client.post(
+        create_response = await client.post(
             "/api/v1/reviews",
             json={
                 "media_id": media_id,
@@ -149,7 +149,7 @@ class TestReviews:
         )
         review_id = create_response.json()["id"]
 
-        response = client.delete(
+        response = await client.delete(
             f"/api/v1/reviews/{review_id}",
             headers=auth_headers
         )

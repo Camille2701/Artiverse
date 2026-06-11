@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional
 
 from app.db import get_db
@@ -35,7 +35,7 @@ async def create_media(
     cover_image: Optional[UploadFile] = File(None),
     banner_image: Optional[UploadFile] = File(None),
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     """Create new media with image uploads."""
     try:
@@ -58,8 +58,8 @@ async def create_media(
             release_date=release_date
         )
         
-        media = MediaService.create_media(
-            db, 
+        media = await MediaService.create_media(
+            db,
             media_create,
             cover_image=cover_filename,
             banner_image=banner_filename
@@ -88,21 +88,25 @@ async def create_media(
 
 
 @router.get("")
-def list_media(
+async def list_media(
     skip: int = 0,
     limit: int = 10,
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     """Get all media with pagination - Frontend compatible format."""
     from app.models import Media
-    media_list = db.query(Media).offset(skip).limit(limit).all()
+    from sqlalchemy import select
+
+    query = select(Media).offset(skip).limit(limit)
+    result = await db.execute(query)
+    media_list = result.scalars().all()
 
     # Transform to frontend compatible format
     return [_media_to_frontend(media) for media in media_list]
 
 
 @router.get("/search", response_model=dict)
-def search_media(
+async def search_media(
     q: str = "",
     media_type: str | None = None,
     min_rating: float | None = None,
@@ -112,7 +116,7 @@ def search_media(
     sort_by: str = "relevance",
     skip: int = 0,
     limit: int = 10,
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     """Enhanced search media with multiple filters.
 
@@ -159,7 +163,7 @@ def search_media(
             detail=f"Invalid sort_by option. Valid options: {', '.join(valid_sort_options)}"
         )
 
-    items, total = MediaService.search_media(
+    items, total = await MediaService.search_media(
         db, q, media_type, skip, limit,
         min_rating, max_rating, year_from, year_to, sort_by
     )
@@ -182,15 +186,20 @@ def search_media(
 
 
 @router.get("/trending", response_model=dict)
-def get_trending(
+async def get_trending(
     skip: int = 0,
     limit: int = 10,
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     """Get trending media."""
     from app.models import Media
-    media_list = MediaService.get_trending_media(db, skip, limit)
-    total = db.query(Media).count()
+    from sqlalchemy import select, func
+
+    media_list = await MediaService.get_trending_media(db, skip, limit)
+
+    count_query = select(func.count(Media.id))
+    count_result = await db.execute(count_query)
+    total = count_result.scalar()
 
     return {
         "items": [_media_to_frontend(m) for m in media_list],
@@ -200,10 +209,37 @@ def get_trending(
     }
 
 
+@router.get("/{media_id}/suggestions")
+async def get_media_suggestions(
+    media_id: str,
+    limit: int = 8,
+    db: AsyncSession = Depends(get_db),
+):
+    """Get ranked suggestions for a media item."""
+    if limit > 20:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Limit cannot exceed 20",
+        )
+
+    source = await MediaService.get_media_by_id(db, media_id)
+    if not source:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Media not found",
+        )
+
+    suggestions = await MediaService.get_suggestions(db, media_id, limit)
+    return {
+        "items": [_media_to_frontend(m) for m in suggestions],
+        "total": len(suggestions),
+    }
+
+
 @router.get("/{media_id}", response_model=MediaResponse)
-def get_media(media_id: str, db: Session = Depends(get_db)):
+async def get_media(media_id: str, db: AsyncSession = Depends(get_db)):
     """Get media by ID."""
-    media = MediaService.get_media_by_id(db, media_id)
+    media = await MediaService.get_media_by_id(db, media_id)
     
     if not media:
         raise HTTPException(
@@ -215,14 +251,14 @@ def get_media(media_id: str, db: Session = Depends(get_db)):
 
 
 @router.patch("/{media_id}", response_model=MediaResponse)
-def update_media(
+async def update_media(
     media_id: str,
     media_update: MediaUpdate,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     """Update media (admin only for MVP)."""
-    media = MediaService.get_media_by_id(db, media_id)
+    media = await MediaService.get_media_by_id(db, media_id)
     
     if not media:
         raise HTTPException(
@@ -234,19 +270,19 @@ def update_media(
     for field, value in update_data.items():
         setattr(media, field, value)
 
-    db.commit()
-    db.refresh(media)
+    await db.commit()
+    await db.refresh(media)
     return media
 
 
 @router.delete("/{media_id}")
-def delete_media(
+async def delete_media(
     media_id: str,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     """Delete media (admin only for MVP)."""
-    deleted = MediaService.delete_media(db, media_id)
+    deleted = await MediaService.delete_media(db, media_id)
 
     if not deleted:
         raise HTTPException(

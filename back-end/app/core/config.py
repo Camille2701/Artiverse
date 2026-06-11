@@ -1,6 +1,24 @@
+from pydantic import Field
 from pydantic_settings import BaseSettings
 from typing import Optional
+import json
 import os
+
+
+def _parse_allowed_origins() -> list[str]:
+    raw = os.getenv("ALLOWED_ORIGINS", "")
+    if raw:
+        try:
+            parsed = json.loads(raw)
+            if isinstance(parsed, list):
+                return parsed
+        except json.JSONDecodeError:
+            return [origin.strip() for origin in raw.split(",") if origin.strip()]
+    return [
+        "http://localhost:3000",
+        "http://localhost:8080",
+        "http://localhost:5173",
+    ]
 
 
 class Settings(BaseSettings):
@@ -14,12 +32,8 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     
-    # CORS Configuration
-    ALLOWED_ORIGINS: list = [
-        "http://localhost:3000",      # Frontend dev (Nuxt)
-        "http://localhost:8080",      # Alternative
-        "http://localhost:5173",      # Vite dev server
-    ]
+    # CORS Configuration (comma-separated or JSON array via ALLOWED_ORIGINS env)
+    ALLOWED_ORIGINS: list = Field(default_factory=_parse_allowed_origins)
     
     # Environment
     DEBUG: bool = os.getenv("DEBUG", "False").lower() == "true"

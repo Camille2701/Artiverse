@@ -2,6 +2,12 @@
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
+  runtimeConfig: {
+    backendUrl: process.env.BACKEND_URL || 'http://localhost:8000',
+    public: {
+      apiBase: process.env.NUXT_PUBLIC_API_BASE || '',
+    },
+  },
   modules: ['@nuxtjs/tailwindcss', '@nuxtjs/google-fonts'],
   css: ['~/assets/css/main.css'],
   tailwindcss: {

@@ -64,5 +64,34 @@ export const useAuth = () => {
     cookie.value = null
   }
 
-  return { user, token, isAuthenticated, login, register, logout }
+  async function restoreSession(): Promise<boolean> {
+    const cookie = useCookie('auth_token')
+    const storedToken = cookie.value
+
+    if (!storedToken) {
+      return false
+    }
+
+    if (user.value && token.value) {
+      return true
+    }
+
+    try {
+      const me = await $fetch<User>('/api/v1/users/me', {
+        headers: {
+          Authorization: `Bearer ${storedToken}`
+        }
+      })
+      user.value = me
+      token.value = storedToken
+      return true
+    } catch {
+      cookie.value = null
+      user.value = null
+      token.value = null
+      return false
+    }
+  }
+
+  return { user, token, isAuthenticated, login, register, logout, restoreSession }
 }

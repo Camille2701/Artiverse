@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional
 
 from app.db import get_db
@@ -29,9 +29,9 @@ class XPActionResponse(BaseModel):
 
 
 @router.get("/progress", response_model=XPProgressResponse)
-def get_xp_progress(
+async def get_xp_progress(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     """Get current user's XP progress."""
     progress = XPService.get_xp_progress(current_user)
@@ -39,19 +39,19 @@ def get_xp_progress(
 
 
 @router.post("/daily-login", response_model=XPActionResponse)
-def award_daily_login_xp(
+async def award_daily_login_xp(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     """Award XP for daily login."""
-    result = XPService.award_daily_login_xp(db, current_user)
+    result = await XPService.award_daily_login_xp(db, current_user)
     return result
 
 
 @router.get("/leaderboard")
-def get_leaderboard(
+async def get_leaderboard(
     limit: Optional[int] = 10,
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     """Get top users by XP."""
     if limit > 50:
@@ -59,7 +59,7 @@ def get_leaderboard(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Limit cannot exceed 50"
         )
-    leaderboard = XPService.get_leaderboard(db, limit)
+    leaderboard = await XPService.get_leaderboard(db, limit)
     return {"leaderboard": leaderboard}
 
 
@@ -68,10 +68,10 @@ class XPActionRequest(BaseModel):
 
 
 @router.post("/award", response_model=XPActionResponse)
-def award_xp(
+async def award_xp(
     action_request: XPActionRequest,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     """Award XP for a specific action (internal use)."""
     valid_actions = list(XPService.XP_VALUES.keys())
@@ -84,14 +84,14 @@ def award_xp(
 
     # Route to appropriate award method
     if action_request.action == "review_created":
-        result = XPService.award_review_xp(db, current_user)
+        result = await XPService.award_review_xp(db, current_user)
     elif action_request.action == "rating_given":
-        result = XPService.award_rating_xp(db, current_user)
+        result = await XPService.award_rating_xp(db, current_user)
     elif action_request.action == "list_created":
-        result = XPService.award_list_creation_xp(db, current_user)
+        result = await XPService.award_list_creation_xp(db, current_user)
     elif action_request.action == "media_added_to_list":
-        result = XPService.award_media_added_to_list_xp(db, current_user)
+        result = await XPService.award_media_added_to_list_xp(db, current_user)
     else:
-        result = XPService.add_xp(db, current_user, action_request.action)
+        result = await XPService.add_xp(db, current_user, action_request.action)
 
     return result

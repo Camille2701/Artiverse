@@ -3,3 +3,4 @@ logs
 *.logpackage-lock.json
 yarn.lock
 pnpm-lock.yaml
+.claude

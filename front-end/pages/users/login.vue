@@ -1,3 +1,9 @@
+<script setup lang="ts">
+definePageMeta({
+  middleware: 'guest'
+})
+</script>
+
 <template>
     <div class="mx-auto w-full max-w-md space-y-6 px-4 py-8 sm:space-y-8 sm:px-6 sm:py-12 lg:max-w-lg lg:px-0">
         <div class="text-center">

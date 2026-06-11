@@ -1,4 +1,5 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, desc
 from app.models import User
 from datetime import datetime, timedelta
 from typing import Optional
@@ -62,7 +63,7 @@ class XPService:
         }
 
     @staticmethod
-    def add_xp(db: Session, user: User, action: str, streak_days: int = 0) -> tuple[int, int]:
+    async def add_xp(db: AsyncSession, user: User, action: str, streak_days: int = 0) -> tuple[int, int]:
         """
         Add XP to a user for a specific action with optional streak bonus.
 
@@ -85,17 +86,17 @@ class XPService:
         if new_level > old_level:
             user.level = new_level
             db.add(user)
-            db.commit()
-            db.refresh(user)
+            await db.commit()
+            await db.refresh(user)
             return xp_gained, new_level
 
         db.add(user)
-        db.commit()
-        db.refresh(user)
+        await db.commit()
+        await db.refresh(user)
         return xp_gained, old_level
 
     @staticmethod
-    def award_daily_login_xp(db: Session, user: User) -> dict:
+    async def award_daily_login_xp(db: AsyncSession, user: User) -> dict:
         """
         Award XP for daily login and calculate streak bonus.
 
@@ -132,7 +133,7 @@ class XPService:
         # Update last login date
         user.last_login_date = datetime.now()
 
-        xp_gained, new_level = XPService.add_xp(db, user, "daily_login", streak_days)
+        xp_gained, new_level = await XPService.add_xp(db, user, "daily_login", streak_days)
 
         return {
             "xp_gained": xp_gained,
@@ -142,9 +143,9 @@ class XPService:
         }
 
     @staticmethod
-    def award_review_xp(db: Session, user: User) -> dict:
+    async def award_review_xp(db: AsyncSession, user: User) -> dict:
         """Award XP for creating a review."""
-        xp_gained, new_level = XPService.add_xp(db, user, "review_created")
+        xp_gained, new_level = await XPService.add_xp(db, user, "review_created")
         return {
             "xp_gained": xp_gained,
             "new_level": new_level,
@@ -152,9 +153,9 @@ class XPService:
         }
 
     @staticmethod
-    def award_rating_xp(db: Session, user: User) -> dict:
+    async def award_rating_xp(db: AsyncSession, user: User) -> dict:
         """Award XP for giving a rating."""
-        xp_gained, new_level = XPService.add_xp(db, user, "rating_given")
+        xp_gained, new_level = await XPService.add_xp(db, user, "rating_given")
         return {
             "xp_gained": xp_gained,
             "new_level": new_level,
@@ -162,9 +163,9 @@ class XPService:
         }
 
     @staticmethod
-    def award_list_creation_xp(db: Session, user: User) -> dict:
+    async def award_list_creation_xp(db: AsyncSession, user: User) -> dict:
         """Award XP for creating a list."""
-        xp_gained, new_level = XPService.add_xp(db, user, "list_created")
+        xp_gained, new_level = await XPService.add_xp(db, user, "list_created")
         return {
             "xp_gained": xp_gained,
             "new_level": new_level,
@@ -172,9 +173,9 @@ class XPService:
         }
 
     @staticmethod
-    def award_media_added_to_list_xp(db: Session, user: User) -> dict:
+    async def award_media_added_to_list_xp(db: AsyncSession, user: User) -> dict:
         """Award XP for adding media to a list."""
-        xp_gained, new_level = XPService.add_xp(db, user, "media_added_to_list")
+        xp_gained, new_level = await XPService.add_xp(db, user, "media_added_to_list")
         return {
             "xp_gained": xp_gained,
             "new_level": new_level,
@@ -182,9 +183,14 @@ class XPService:
         }
 
     @staticmethod
-    def get_leaderboard(db: Session, limit: int = 10) -> list[dict]:
+    async def get_leaderboard(db: AsyncSession, limit: int = 10) -> list[dict]:
         """Get top users by XP."""
-        top_users = db.query(User).order_by(User.experience_points.desc()).limit(limit).all()
+        result = await db.execute(
+            select(User)
+            .order_by(desc(User.experience_points))
+            .limit(limit)
+        )
+        top_users = result.scalars().all()
 
         return [
             {

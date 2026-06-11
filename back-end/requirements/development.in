@@ -1,0 +1,15 @@
+-r base.in
+
+# Testing
+pytest==7.4.3
+pytest-asyncio==0.21.1
+httpx==0.25.2
+pytest-cov==4.1.0
+
+# Async SQLite for testing
+aiosqlite==0.19.0
+
+# Development Tools
+black==23.12.1
+ruff==0.1.9
+mypy==1.8.0

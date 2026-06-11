@@ -8,14 +8,10 @@
         <!-- Cover image -->
         <div class="h-56 w-full overflow-hidden bg-gradient-to-br from-bg-tertiary to-bg-secondary">
           <img
-            v-if="props.media.image"
-            :src="props.media.image"
+            :src="resolveMediaImage(props.media.image, props.media.type)"
             :alt="props.media.title"
             class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
           />
-          <div v-else class="h-full flex items-center justify-center">
-            <MediaTypeIcon :type="mediaTypeIcon" size="large" />
-          </div>
         </div>
 
         <!-- Overlays -->
@@ -83,9 +79,9 @@
 </template>
 
 <script setup lang="ts">
-import { MediaType, type Media } from '~/types/media';
-import MediaTypeIcon from '~/components/icons/MediaTypeIcon.vue';
-import UIIcon from '~/components/icons/UIIcon.vue';
+import type { Media } from '~/types/media'
+import { resolveMediaImage } from '~/composables/useMediaCover'
+import UIIcon from '~/components/icons/UIIcon.vue'
 
 const props = defineProps<{
   media: Media

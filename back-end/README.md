@@ -3,7 +3,7 @@
 ## Setup Instructions
 
 ### Prerequisites
-- Python 3.12+
+- Python 3.12
 - PostgreSQL 12+
 - pip
 

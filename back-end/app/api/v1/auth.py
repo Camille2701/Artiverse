@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import timedelta
 
 from app.db import get_db
@@ -13,22 +13,22 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 @router.post("/register")
-def register(user_create: UserCreate, db: Session = Depends(get_db)):
+async def register(user_create: UserCreate, db: AsyncSession = Depends(get_db)):
     """Register a new user - Frontend compatible format."""
     # Check if user already exists
-    if UserService.get_user_by_email(db, user_create.email):
+    if await UserService.get_user_by_email(db, user_create.email):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Email already registered"
         )
 
-    if UserService.get_user_by_username(db, user_create.username):
+    if await UserService.get_user_by_username(db, user_create.username):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Username already taken"
         )
 
-    user = UserService.create_user(db, user_create)
+    user = await UserService.create_user(db, user_create)
 
     # Auto-login after registration
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
@@ -38,7 +38,7 @@ def register(user_create: UserCreate, db: Session = Depends(get_db)):
     )
 
     # Award daily login XP
-    xp_result = XPService.award_daily_login_xp(db, user)
+    xp_result = await XPService.award_daily_login_xp(db, user)
 
     return {
         "user": {
@@ -56,9 +56,9 @@ def register(user_create: UserCreate, db: Session = Depends(get_db)):
 
 
 @router.post("/login")
-def login(
+async def login(
     login_data: dict,
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     """Login and get access token - Frontend compatible format."""
     username = login_data.get("username")
@@ -68,9 +68,9 @@ def login(
     user = None
 
     if username:
-        user = UserService.get_user_by_username(db, username)
+        user = await UserService.get_user_by_username(db, username)
     elif email:
-        user = UserService.get_user_by_email(db, email)
+        user = await UserService.get_user_by_email(db, email)
 
     if not user:
         raise HTTPException(
@@ -91,7 +91,7 @@ def login(
     )
 
     # Award daily login XP
-    xp_result = XPService.award_daily_login_xp(db, user)
+    xp_result = await XPService.award_daily_login_xp(db, user)
 
     return {
         "user": {
@@ -109,19 +109,19 @@ def login(
 
 
 @router.post("/login-form", response_model=Token)
-def login_form(
+async def login_form(
     username: str = None,
     password: str = None,
     email: str = None,
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     """Login with form data (username or email)."""
     user = None
-    
+
     if username:
-        user = UserService.get_user_by_username(db, username)
+        user = await UserService.get_user_by_username(db, username)
     elif email:
-        user = UserService.get_user_by_email(db, email)
+        user = await UserService.get_user_by_email(db, email)
     
     if not user or not verify_password(password, user.hashed_password):
         raise HTTPException(

@@ -5,9 +5,9 @@ const { isDark, toggleTheme } = useTheme()
 <template>
   <button
     @click="toggleTheme"
-    class="theme-toggle"
-    :title="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
-    aria-label="Toggle dark mode"
+    class="theme-toggle nav-link text-sm px-3 py-2 rounded-lg hover:bg-bg-secondary/50 transition-all duration-300"
+    :title="isDark ? 'Passer en mode clair' : 'Passer en mode sombre'"
+    aria-label="Basculer le thème"
   >
     <!-- Sun icon for light mode -->
     <svg

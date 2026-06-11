@@ -1,6 +1,6 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, func, and_, desc
 from app.models import User, Follow, ActivityLog, ActivityType, Media, Rating, Review
-from sqlalchemy import func, and_, desc
 from typing import List, Dict, Optional
 from datetime import datetime
 
@@ -9,24 +9,30 @@ class SocialService:
     """Service for social features like follows and activity feeds."""
 
     @staticmethod
-    def follow_user(db: Session, follower: User, followed_id: str) -> bool:
+    async def follow_user(db: AsyncSession, follower: User, followed_id: str) -> bool:
         """Follow a user."""
         # Can't follow yourself
         if follower.id == followed_id:
             raise ValueError("Cannot follow yourself")
 
         # Check if user exists
-        followed = db.query(User).filter(User.id == followed_id).first()
+        followed_result = await db.execute(
+            select(User).where(User.id == followed_id)
+        )
+        followed = followed_result.scalar_one_or_none()
         if not followed:
             raise ValueError("User not found")
 
         # Check if already following
-        existing = db.query(Follow).filter(
-            and_(
-                Follow.follower_id == follower.id,
-                Follow.followed_id == followed_id
+        existing_result = await db.execute(
+            select(Follow).where(
+                and_(
+                    Follow.follower_id == follower.id,
+                    Follow.followed_id == followed_id
+                )
             )
-        ).first()
+        )
+        existing = existing_result.scalar_one_or_none()
 
         if existing:
             return False  # Already following
@@ -48,36 +54,46 @@ class SocialService:
         )
         db.add(activity)
 
-        db.commit()
+        await db.commit()
         return True
 
     @staticmethod
-    def unfollow_user(db: Session, follower: User, followed_id: str) -> bool:
+    async def unfollow_user(db: AsyncSession, follower: User, followed_id: str) -> bool:
         """Unfollow a user."""
-        follow = db.query(Follow).filter(
-            and_(
-                Follow.follower_id == follower.id,
-                Follow.followed_id == followed_id
+        result = await db.execute(
+            select(Follow).where(
+                and_(
+                    Follow.follower_id == follower.id,
+                    Follow.followed_id == followed_id
+                )
             )
-        ).first()
+        )
+        follow = result.scalar_one_or_none()
 
         if not follow:
             return False  # Not following
 
-        db.delete(follow)
-        db.commit()
+        await db.delete(follow)
+        await db.commit()
         return True
 
     @staticmethod
-    def get_following(db: Session, user_id: str, limit: int = 50) -> List[Dict]:
+    async def get_following(db: AsyncSession, user_id: str, limit: int = 50) -> List[Dict]:
         """Get users that the given user is following."""
-        follows = db.query(Follow).filter(
-            Follow.follower_id == user_id
-        ).order_by(desc(Follow.created_at)).limit(limit).all()
+        result = await db.execute(
+            select(Follow)
+            .where(Follow.follower_id == user_id)
+            .order_by(desc(Follow.created_at))
+            .limit(limit)
+        )
+        follows = result.scalars().all()
 
         following_users = []
         for follow in follows:
-            user = db.query(User).filter(User.id == follow.followed_id).first()
+            user_result = await db.execute(
+                select(User).where(User.id == follow.followed_id)
+            )
+            user = user_result.scalar_one_or_none()
             if user:
                 following_users.append({
                     "id": user.id,
@@ -90,15 +106,22 @@ class SocialService:
         return following_users
 
     @staticmethod
-    def get_followers(db: Session, user_id: str, limit: int = 50) -> List[Dict]:
+    async def get_followers(db: AsyncSession, user_id: str, limit: int = 50) -> List[Dict]:
         """Get users that follow the given user."""
-        follows = db.query(Follow).filter(
-            Follow.followed_id == user_id
-        ).order_by(desc(Follow.created_at)).limit(limit).all()
+        result = await db.execute(
+            select(Follow)
+            .where(Follow.followed_id == user_id)
+            .order_by(desc(Follow.created_at))
+            .limit(limit)
+        )
+        follows = result.scalars().all()
 
         follower_users = []
         for follow in follows:
-            user = db.query(User).filter(User.id == follow.follower_id).first()
+            user_result = await db.execute(
+                select(User).where(User.id == follow.follower_id)
+            )
+            user = user_result.scalar_one_or_none()
             if user:
                 follower_users.append({
                     "id": user.id,
@@ -111,26 +134,31 @@ class SocialService:
         return follower_users
 
     @staticmethod
-    def is_following(db: Session, follower_id: str, followed_id: str) -> bool:
+    async def is_following(db: AsyncSession, follower_id: str, followed_id: str) -> bool:
         """Check if follower is following followed."""
-        follow = db.query(Follow).filter(
-            and_(
-                Follow.follower_id == follower_id,
-                Follow.followed_id == followed_id
+        result = await db.execute(
+            select(Follow).where(
+                and_(
+                    Follow.follower_id == follower_id,
+                    Follow.followed_id == followed_id
+                )
             )
-        ).first()
+        )
+        follow = result.scalar_one_or_none()
         return follow is not None
 
     @staticmethod
-    def get_follow_stats(db: Session, user_id: str) -> Dict:
+    async def get_follow_stats(db: AsyncSession, user_id: str) -> Dict:
         """Get follow statistics for a user."""
-        following_count = db.query(func.count(Follow.id)).filter(
-            Follow.follower_id == user_id
-        ).scalar() or 0
+        following_count_result = await db.execute(
+            select(func.count(Follow.id)).where(Follow.follower_id == user_id)
+        )
+        following_count = following_count_result.scalar() or 0
 
-        followers_count = db.query(func.count(Follow.id)).filter(
-            Follow.followed_id == user_id
-        ).scalar() or 0
+        followers_count_result = await db.execute(
+            select(func.count(Follow.id)).where(Follow.followed_id == user_id)
+        )
+        followers_count = followers_count_result.scalar() or 0
 
         return {
             "following_count": following_count,
@@ -138,9 +166,9 @@ class SocialService:
         }
 
     @staticmethod
-    def log_activity(db: Session, user_id: str, activity_type: ActivityType,
-                     entity_type: Optional[str] = None, entity_id: Optional[str] = None,
-                     metadata: Optional[Dict] = None) -> ActivityLog:
+    async def log_activity(db: AsyncSession, user_id: str, activity_type: ActivityType,
+                          entity_type: Optional[str] = None, entity_id: Optional[str] = None,
+                          metadata: Optional[Dict] = None) -> ActivityLog:
         """Log a user activity."""
         activity = ActivityLog(
             user_id=user_id,
@@ -150,20 +178,28 @@ class SocialService:
             activity_metadata=metadata
         )
         db.add(activity)
-        db.commit()
-        db.refresh(activity)
+        await db.commit()
+        await db.refresh(activity)
         return activity
 
     @staticmethod
-    def get_user_activity(db: Session, user_id: str, limit: int = 20) -> List[Dict]:
+    async def get_user_activity(db: AsyncSession, user_id: str, limit: int = 20) -> List[Dict]:
         """Get recent activity for a user."""
-        activities = db.query(ActivityLog).filter(
-            ActivityLog.user_id == user_id
-        ).order_by(desc(ActivityLog.created_at)).limit(limit).all()
+        result = await db.execute(
+            select(ActivityLog)
+            .where(ActivityLog.user_id == user_id)
+            .order_by(desc(ActivityLog.created_at))
+            .limit(limit)
+        )
+        activities = result.scalars().all()
 
         activity_list = []
         for activity in activities:
-            user = db.query(User).filter(User.id == activity.user_id).first()
+            user_result = await db.execute(
+                select(User).where(User.id == activity.user_id)
+            )
+            user = user_result.scalar_one_or_none()
+
             activity_data = {
                 "id": activity.id,
                 "activity_type": activity.activity_type.value,
@@ -180,7 +216,10 @@ class SocialService:
 
             # Add additional data based on entity type
             if activity.entity_type == "media" and activity.entity_id:
-                media = db.query(Media).filter(Media.id == activity.entity_id).first()
+                media_result = await db.execute(
+                    select(Media).where(Media.id == activity.entity_id)
+                )
+                media = media_result.scalar_one_or_none()
                 if media:
                     activity_data["media"] = {
                         "id": media.id,
@@ -194,24 +233,33 @@ class SocialService:
         return activity_list
 
     @staticmethod
-    def get_feed(db: Session, user_id: str, limit: int = 20) -> List[Dict]:
+    async def get_feed(db: AsyncSession, user_id: str, limit: int = 20) -> List[Dict]:
         """Get activity feed from followed users."""
         # Get IDs of users that the current user follows
-        followed_ids = [f.followed_id for f in db.query(Follow).filter(
-            Follow.follower_id == user_id
-        ).all()]
+        followed_result = await db.execute(
+            select(Follow.followed_id).where(Follow.follower_id == user_id)
+        )
+        followed_ids = [row[0] for row in followed_result.all()]
 
         if not followed_ids:
             return []
 
         # Get recent activities from followed users
-        activities = db.query(ActivityLog).filter(
-            ActivityLog.user_id.in_(followed_ids)
-        ).order_by(desc(ActivityLog.created_at)).limit(limit).all()
+        result = await db.execute(
+            select(ActivityLog)
+            .where(ActivityLog.user_id.in_(followed_ids))
+            .order_by(desc(ActivityLog.created_at))
+            .limit(limit)
+        )
+        activities = result.scalars().all()
 
         feed_items = []
         for activity in activities:
-            user = db.query(User).filter(User.id == activity.user_id).first()
+            user_result = await db.execute(
+                select(User).where(User.id == activity.user_id)
+            )
+            user = user_result.scalar_one_or_none()
+
             activity_data = {
                 "id": activity.id,
                 "activity_type": activity.activity_type.value,
@@ -228,7 +276,10 @@ class SocialService:
 
             # Add additional data based on entity type
             if activity.entity_type == "media" and activity.entity_id:
-                media = db.query(Media).filter(Media.id == activity.entity_id).first()
+                media_result = await db.execute(
+                    select(Media).where(Media.id == activity.entity_id)
+                )
+                media = media_result.scalar_one_or_none()
                 if media:
                     activity_data["media"] = {
                         "id": media.id,
@@ -242,10 +293,13 @@ class SocialService:
         return feed_items
 
     @staticmethod
-    def get_similar_users(db: Session, user_id: str, limit: int = 10) -> List[Dict]:
+    async def get_similar_users(db: AsyncSession, user_id: str, limit: int = 10) -> List[Dict]:
         """Get users with similar taste based on ratings."""
         # Get current user's ratings
-        user_ratings = db.query(Rating).filter(Rating.user_id == user_id).all()
+        user_ratings_result = await db.execute(
+            select(Rating).where(Rating.user_id == user_id)
+        )
+        user_ratings = user_ratings_result.scalars().all()
 
         if len(user_ratings) < 3:
             # Not enough data for similarity calculation
@@ -255,21 +309,27 @@ class SocialService:
         rated_media_ids = [r.media_id for r in user_ratings]
 
         # Find other users who have rated the same media
-        similar_candidates = db.query(
-            Rating.user_id,
-            func.count(Rating.id).label('common_ratings')
-        ).filter(
-            and_(
-                Rating.media_id.in_(rated_media_ids),
-                Rating.user_id != user_id
+        similar_candidates_result = await db.execute(
+            select(Rating.user_id, func.count(Rating.id).label('common_ratings'))
+            .where(
+                and_(
+                    Rating.media_id.in_(rated_media_ids),
+                    Rating.user_id != user_id
+                )
             )
-        ).group_by(Rating.user_id).having(
-            func.count(Rating.id) >= 3  # At least 3 common ratings
-        ).order_by(desc('common_ratings')).limit(limit * 2).all()
+            .group_by(Rating.user_id)
+            .having(func.count(Rating.id) >= 3)
+            .order_by(desc('common_ratings'))
+            .limit(limit * 2)
+        )
+        similar_candidates = similar_candidates_result.all()
 
         similar_users = []
         for candidate_id, common_count in similar_candidates:
-            candidate = db.query(User).filter(User.id == candidate_id).first()
+            candidate_result = await db.execute(
+                select(User).where(User.id == candidate_id)
+            )
+            candidate = candidate_result.scalar_one_or_none()
             if candidate:
                 # Calculate simple compatibility score
                 compatibility = min(100, (common_count / len(rated_media_ids)) * 100)
