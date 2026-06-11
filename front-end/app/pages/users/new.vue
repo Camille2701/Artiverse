@@ -1,19 +1,85 @@
 <script setup lang="ts">
 useHead({
-  title: "Artiverse",
+  title: 'Inscription | Artiverse',
   meta: [
-    { name: "Page de création d'utilisateur", content: "Création d'un utilisateur"}
+    { name: 'description', content: 'Crée ton compte Artiverse pour commencer à explorer, noter et suivre tes médias favoris.' }
   ]
 })
 </script>
 
 <template>
-  <div class="mx-auto w-full max-w-md space-y-4 px-4 py-6 sm:space-y-5 sm:px-6 sm:py-8 lg:max-w-lg lg:space-y-6 lg:px-0">
-    <h1 class="text-2xl font-semibold text-slate-900 sm:text-3xl">M'inscrire</h1>
-    <UserForm />
-    <p class="text-sm text-slate-600 sm:text-base">
-      Déjà un compte ?
-      <NuxtLink to="/users/login" class="text-link-accent">Se connecter</NuxtLink>
-    </p>
-  </div>
+  <AuthPageShell
+    eyebrow="Créer un compte"
+    title="Entre dans Artiverse en quelques secondes."
+    description="Crée ton espace personnel pour suivre tes coups de cœur, publier ton activité et garder ta culture au même endroit."
+    :bullets="[
+      'Un profil prêt à l’emploi en quelques étapes.',
+      'Une interface claire pour suivre tes médias et tes envies.',
+      'Le même univers visuel que le reste du site, sans rupture.'
+    ]"
+  >
+    <div class="auth-form-stack">
+      <div class="auth-heading">
+        <span class="auth-kicker">Commencer maintenant</span>
+        <h2>M'inscrire</h2>
+        <p>Renseigne les informations demandées pour créer ton compte Artiverse.</p>
+      </div>
+
+      <UserForm />
+
+      <p class="auth-switch">
+        Déjà un compte ?
+        <NuxtLink to="/users/login">Se connecter</NuxtLink>
+      </p>
+    </div>
+  </AuthPageShell>
 </template>
+
+<style scoped>
+.auth-form-stack {
+  display: grid;
+  gap: 22px;
+}
+
+.auth-heading {
+  display: grid;
+  gap: 8px;
+}
+
+.auth-kicker {
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--c-gold-light);
+}
+
+.auth-heading h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 3vw, 2.4rem);
+  line-height: 1.05;
+  color: var(--c-text);
+}
+
+.auth-heading p {
+  margin: 0;
+  line-height: 1.65;
+  color: var(--c-purple-muted);
+}
+
+.auth-switch {
+  margin: 0;
+  color: var(--c-purple-pale);
+}
+
+.auth-switch :deep(a) {
+  color: var(--c-gold-light);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.auth-switch :deep(a:hover) {
+  text-decoration: underline;
+}
+</style>

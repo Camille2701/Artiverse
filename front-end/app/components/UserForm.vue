@@ -98,10 +98,9 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <form class="space-y-4" novalidate @submit.prevent="handleSubmit">
-    <p class="text-sm text-slate-600">Crée ton compte en complétant les informations ci-dessous.</p>
+  <form class="auth-form" novalidate @submit.prevent="handleSubmit">
     <div>
-      <label class="text-sm font-medium text-slate-700">Nom</label>
+      <label class="auth-label">Nom</label>
       <input
         v-model.trim="form.name"
         :class="inputClass('name')"
@@ -109,22 +108,22 @@ async function handleSubmit() {
         required
         @blur="markTouchedAndValidate('name')"
       >
-      <p v-if="touched.name && errors.name" class="mt-1 text-xs text-red-600">{{ errors.name }}</p>
+      <p v-if="touched.name && errors.name" class="auth-error">{{ errors.name }}</p>
     </div>
     <div>
-      <label class="text-sm font-medium text-slate-700">Email</label>
+      <label class="auth-label">Email</label>
       <input
         v-model.lazy="form.email"
         :class="inputClass('email')"
         type="email"
-        placeholder="Email"
+        placeholder="nom@exemple.com"
         required
         @blur="markTouchedAndValidate('email')"
       >
-      <p v-if="touched.email && errors.email" class="mt-1 text-xs text-red-600">{{ errors.email }}</p>
+      <p v-if="touched.email && errors.email" class="auth-error">{{ errors.email }}</p>
     </div>
     <div>
-      <label class="text-sm font-medium text-slate-700">Âge</label>
+      <label class="auth-label">Âge</label>
       <input
         v-model.number="form.age"
         :class="inputClass('age')"
@@ -133,19 +132,58 @@ async function handleSubmit() {
         required
         @blur="markTouchedAndValidate('age')"
       >
-      <p v-if="touched.age && errors.age" class="mt-1 text-xs text-red-600">{{ errors.age }}</p>
+      <p v-if="touched.age && errors.age" class="auth-error">{{ errors.age }}</p>
     </div>
     <div>
-      <label class="inline-flex items-center gap-2 text-sm text-slate-700">
-        <input class="h-4 w-4 rounded border-slate-300 text-blue-600 transition-all duration-200 ease-out hover:border-slate-400 focus:ring-2 focus:ring-blue-500 active:border-blue-600 active:ring-blue-500/70" type="checkbox" v-model="form.isActive">
+      <label class="auth-check">
+        <input class="auth-checkbox" type="checkbox" v-model="form.isActive">
         Actif
       </label>
     </div>
     <button
-      class="w-full rounded-md bg-accent px-4 py-2 text-white transition-all duration-200 ease-out hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-1 active:bg-accent-hover"
+      class="auth-submit btn-cta"
       type="submit"
     >
       Enregistrer
     </button>
   </form>
 </template>
+
+<style scoped>
+.auth-form {
+  display: grid;
+  gap: 18px;
+}
+
+.auth-label {
+  display: inline-block;
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--c-purple-pale);
+}
+
+.auth-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--c-purple-pale);
+}
+
+.auth-checkbox {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--c-gold);
+}
+
+.auth-error {
+  margin-top: 8px;
+  font-size: 0.88rem;
+  color: var(--c-pink);
+}
+
+.auth-submit {
+  width: 100%;
+  justify-content: center;
+}
+</style>
