@@ -1,7 +1,7 @@
 import type { MediaItem } from '~/types'
-import { Users } from 
   
 export const useGameData = () => {
+    const { users } = useUserData()
     const Games: MediaItem[] = [
         {
         id: 6, rank: 2,
@@ -33,14 +33,14 @@ export const useGameData = () => {
         critiques: [
             {
             id: 1,
-            user: { id: 2, username: "Luna" },
+            user: users[2],
             note: 10,
             commentaire: "Le meilleur jeu de plateforme depuis longtemps.",
             date: new Date("2024-09-15")
             },
             {
             id: 2,
-            user: { id: 3, username: "Nexus" },
+            user: users[3],
             note: 9,
             commentaire: "Créatif et très fun.",
             date: new Date("2024-09-18")
@@ -60,14 +60,14 @@ export const useGameData = () => {
         critiques: [
             {
             id: 3,
-            user: { id: 4, username: "Shadow" },
+            user: users[4],
             note: 9,
             commentaire: "Gameplay nerveux et excellente direction artistique.",
             date: new Date("2024-05-01")
             },
             {
             id: 4,
-            user: { id: 5, username: "Milo" },
+            user: users[5],
             note: 8,
             commentaire: "Très bon mais quelques quêtes répétitives.",
             date: new Date("2024-05-05")
@@ -87,21 +87,21 @@ export const useGameData = () => {
         critiques: [
             {
             id: 5,
-            user: { id: 6, username: "Ghost" },
+            user: users[5],
             note: 10,
             commentaire: "Incroyable entre amis.",
             date: new Date("2024-03-10")
             },
             {
             id: 6,
-            user: { id: 7, username: "Raven" },
+            user: users[7],
             note: 9,
             commentaire: "Du chaos comme on l'aime.",
             date: new Date("2024-03-12")
             },
             {
             id: 7,
-            user: { id: 8, username: "Pixel" },
+            user: users[8],
             note: 8,
             commentaire: "Très bon suivi des développeurs.",
             date: new Date("2024-03-20")
@@ -121,7 +121,7 @@ export const useGameData = () => {
         critiques: [
             {
             id: 8,
-            user: { id: 9, username: "Arwen" },
+            user: users[8],
             note: 8,
             commentaire: "Bonne histoire et compagnons attachants.",
             date: new Date("2024-11-05")
@@ -148,7 +148,7 @@ export const useGameData = () => {
             },
             {
             id: 10,
-            user: { id: 11, username: "Nova" },
+            user: users[3],
             note: 9,
             commentaire: "Le meilleur jeu Warhammer depuis des années.",
             date: new Date("2024-09-15")
@@ -168,14 +168,14 @@ export const useGameData = () => {
         critiques: [
             {
             id: 11,
-            user: { id: 12, username: "Echo" },
+            user: users[12],
             note: 10,
             commentaire: "Une ambiance exceptionnelle.",
             date: new Date("2024-10-09")
             },
             {
             id: 12,
-            user: { id: 13, username: "Night" },
+            user: users[9],
             note: 8,
             commentaire: "Très fidèle à l'original.",
             date: new Date("2024-10-12")
@@ -183,4 +183,5 @@ export const useGameData = () => {
         ]
         },
     ]
+    return { Games }
 }
